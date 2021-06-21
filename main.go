@@ -60,6 +60,7 @@ type MoveResponse struct {
 	Move  string `json:"move"`
 	Shout string `json:"shout,omitempty"`
 }
+
 type movesSet []direction
 
 // HandleIndex is called when your Battlesnake is created and refreshed
@@ -105,16 +106,10 @@ func HandleMove(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
 
-	var moves = movesSet{
-		{0, -1, "up"},
-		{0, 1, "down"},
-		{-1, 0, "left"},
-		{1, 0, "right"},
-	}
-	availableMoves := avoidBoundaries(request, moves)
+	availableMoves := avoidBoundaries(request, newMoves())
 	availableMoves = avoidSelf(request, availableMoves)
 
-	move := moves[0]
+	move := newMoves()[0]
 	if len(availableMoves) > 0 {
 		move = availableMoves[rand.Intn(len(availableMoves))]
 	}
@@ -160,20 +155,28 @@ func main() {
 }
 
 func avoidBoundaries(game GameRequest, moves movesSet) []direction {
-	for i, possible := range moves {
+	resultMoves := copyMoves(moves)
+	for _, possible := range moves {
 		nextMove := game.You.Head
 		nextMove.X += possible.x
 		nextMove.Y += possible.y
 		if nextMove.X < 0 || nextMove.X >= game.Board.Width || nextMove.Y < 0 || nextMove.Y >= game.Board.Height {
-			moves[len(moves)-1], moves[i] = moves[i], moves[len(moves)-1] // swap with last
-			return moves[:len(moves)-1]                                   // truncate last
+			resultMoves = removeMove(resultMoves, possible)
 		}
 	}
-	return moves
+	return resultMoves
+}
+
+func copyMoves(moves movesSet) movesSet {
+	var resultMoves movesSet
+	for _, move := range moves {
+		resultMoves = append(resultMoves, move)
+	}
+	return resultMoves
 }
 
 func avoidSelf(game GameRequest, moves movesSet) []direction {
-	resultMoves := moves
+	resultMoves := copyMoves(moves)
 	for _, possible := range moves {
 		nextMove := game.You.Head
 		nextMove.X += possible.x
@@ -195,4 +198,13 @@ func removeMove(moves movesSet, toRemove direction) movesSet {
 		}
 	}
 	return moves
+}
+
+func newMoves() movesSet {
+	return movesSet{
+		{0, 1, "up"},
+		{0, -1, "down"},
+		{-1, 0, "left"},
+		{1, 0, "right"},
+	}
 }
