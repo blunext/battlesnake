@@ -111,11 +111,12 @@ func HandleMove(w http.ResponseWriter, r *http.Request) {
 		{-1, 0, "left"},
 		{1, 0, "right"},
 	}
-	avaliableMoves := avoidBoundaries(request, moves)
+	availableMoves := avoidBoundaries(request, moves)
+	availableMoves = avoidSelf(request, availableMoves)
 
 	move := moves[0]
-	if len(avaliableMoves) > 0 {
-		move = avaliableMoves[rand.Intn(len(avaliableMoves))]
+	if len(availableMoves) > 0 {
+		move = availableMoves[rand.Intn(len(availableMoves))]
 	}
 
 	response := MoveResponse{
@@ -158,15 +159,40 @@ func main() {
 	log.Fatal(http.ListenAndServe(":"+port, nil))
 }
 
-func avoidBoundaries(request GameRequest, move movesSet) []direction {
-	for i, possible := range move {
-		nextMove := request.You.Head
+func avoidBoundaries(game GameRequest, moves movesSet) []direction {
+	for i, possible := range moves {
+		nextMove := game.You.Head
 		nextMove.X += possible.x
 		nextMove.Y += possible.y
-		if nextMove.X < 0 || nextMove.X > request.Board.Width || nextMove.Y < 0 || nextMove.Y > request.Board.Height {
-			move[len(move)-1], move[i] = move[i], move[len(move)-1] // swap with last
-			return move[:len(move)-1]                               // truncate last
+		if nextMove.X < 0 || nextMove.X >= game.Board.Width || nextMove.Y < 0 || nextMove.Y >= game.Board.Height {
+			moves[len(moves)-1], moves[i] = moves[i], moves[len(moves)-1] // swap with last
+			return moves[:len(moves)-1]                                   // truncate last
 		}
 	}
-	return move
+	return moves
+}
+
+func avoidSelf(game GameRequest, moves movesSet) []direction {
+	resultMoves := moves
+	for _, possible := range moves {
+		nextMove := game.You.Head
+		nextMove.X += possible.x
+		nextMove.Y += possible.y
+		for _, coord := range game.You.Body {
+			if nextMove.X == coord.X && nextMove.Y == coord.Y {
+				resultMoves = removeMove(resultMoves, possible)
+			}
+		}
+	}
+	return moves
+}
+
+func removeMove(moves movesSet, toRemove direction) movesSet {
+	for i, m := range moves {
+		if m.heading == toRemove.heading {
+			moves[len(moves)-1], moves[i] = moves[i], moves[len(moves)-1] // swap with last
+			return moves[:len(moves)-1]                                   // truncate last
+		}
+	}
+	return moves
 }
