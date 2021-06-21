@@ -100,6 +100,8 @@ func HandleStart(w http.ResponseWriter, r *http.Request) {
 // Valid responses are "up", "down", "left", or "right".
 // TODO: Use the information in the GameRequest object to determine your next move.
 func HandleMove(w http.ResponseWriter, r *http.Request) {
+	//fmt.Printf("Next move\n")
+
 	request := GameRequest{}
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
@@ -118,7 +120,8 @@ func HandleMove(w http.ResponseWriter, r *http.Request) {
 		Move: move.heading,
 	}
 
-	fmt.Printf("MOVE: %s\n", response.Move)
+	//fmt.Printf("MOVE: %s\n", response.Move)
+
 	w.Header().Set("Content-Type", "application/json")
 	err = json.NewEncoder(w).Encode(response)
 	if err != nil {
@@ -154,7 +157,7 @@ func main() {
 	log.Fatal(http.ListenAndServe(":"+port, nil))
 }
 
-func avoidBoundaries(game GameRequest, moves movesSet) []direction {
+func avoidBoundaries(game GameRequest, moves movesSet) movesSet {
 	resultMoves := copyMoves(moves)
 	for _, possible := range moves {
 		nextMove := game.You.Head
@@ -175,7 +178,7 @@ func copyMoves(moves movesSet) movesSet {
 	return resultMoves
 }
 
-func avoidSelf(game GameRequest, moves movesSet) []direction {
+func avoidSelf(game GameRequest, moves movesSet) movesSet {
 	resultMoves := copyMoves(moves)
 	for _, possible := range moves {
 		nextMove := game.You.Head
@@ -183,11 +186,12 @@ func avoidSelf(game GameRequest, moves movesSet) []direction {
 		nextMove.Y += possible.y
 		for _, coord := range game.You.Body {
 			if nextMove.X == coord.X && nextMove.Y == coord.Y {
+				fmt.Printf("remove %s\n", possible.heading)
 				resultMoves = removeMove(resultMoves, possible)
 			}
 		}
 	}
-	return moves
+	return resultMoves
 }
 
 func removeMove(moves movesSet, toRemove direction) movesSet {
