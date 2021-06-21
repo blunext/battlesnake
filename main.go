@@ -9,6 +9,11 @@ import (
 	"os"
 )
 
+type direction struct {
+	x, y    int
+	heading string
+}
+
 type Game struct {
 	ID      string `json:"id"`
 	Timeout int32  `json:"timeout"`
@@ -55,6 +60,7 @@ type MoveResponse struct {
 	Move  string `json:"move"`
 	Shout string `json:"shout,omitempty"`
 }
+type movesSet []direction
 
 // HandleIndex is called when your Battlesnake is created and refreshed
 // by play.battlesnake.com. BattlesnakeInfoResponse contains information about
@@ -62,10 +68,10 @@ type MoveResponse struct {
 func HandleIndex(w http.ResponseWriter, r *http.Request) {
 	response := BattlesnakeInfoResponse{
 		APIVersion: "1",
-		Author:     "",        // TODO: Your Battlesnake username
-		Color:      "#888888", // TODO: Personalize
-		Head:       "default", // TODO: Personalize
-		Tail:       "default", // TODO: Personalize
+		Author:     "gerard",   // TODO: Your Battlesnake username
+		Color:      "#880074",  // TODO: Personalize
+		Head:       "bendr",    // TODO: Personalize
+		Tail:       "freckled", // TODO: Personalize
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -99,12 +105,21 @@ func HandleMove(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
 
-	// Choose a random direction to move in
-	possibleMoves := []string{"up", "down", "left", "right"}
-	move := possibleMoves[rand.Intn(len(possibleMoves))]
+	var moves = movesSet{
+		{0, -1, "up"},
+		{0, 1, "down"},
+		{-1, 0, "left"},
+		{1, 0, "right"},
+	}
+	avaliableMoves := avoidBoundries(request, moves)
+
+	move := moves[0]
+	if len(avaliableMoves) > 0 {
+		move = avaliableMoves[rand.Intn(len(avaliableMoves))]
+	}
 
 	response := MoveResponse{
-		Move: move,
+		Move: move.heading,
 	}
 
 	fmt.Printf("MOVE: %s\n", response.Move)
@@ -141,4 +156,17 @@ func main() {
 
 	fmt.Printf("Starting Battlesnake Server at http://0.0.0.0:%s...\n", port)
 	log.Fatal(http.ListenAndServe(":"+port, nil))
+}
+
+func avoidBoundries(request GameRequest, move movesSet) []direction {
+	for i, possible := range move {
+		nextMove := request.You.Head
+		nextMove.X += possible.x
+		nextMove.Y += possible.y
+		if nextMove.X < 0 || nextMove.X > request.Board.Width || nextMove.Y < 0 || nextMove.Y > request.Board.Height {
+			move[len(move)-1], move[i] = move[i], move[len(move)-1] // swap with last
+			return move[:len(move)-1]                               // truncate last
+		}
+	}
+	return move
 }
