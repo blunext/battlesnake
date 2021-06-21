@@ -111,7 +111,7 @@ func HandleMove(w http.ResponseWriter, r *http.Request) {
 		{-1, 0, "left"},
 		{1, 0, "right"},
 	}
-	avaliableMoves := avoidBoundries(request, moves)
+	avaliableMoves := avoidBoundaries(request, moves)
 
 	move := moves[0]
 	if len(avaliableMoves) > 0 {
@@ -158,7 +158,7 @@ func main() {
 	log.Fatal(http.ListenAndServe(":"+port, nil))
 }
 
-func avoidBoundries(request GameRequest, move movesSet) []direction {
+func avoidBoundaries(request GameRequest, move movesSet) []direction {
 	for i, possible := range move {
 		nextMove := request.You.Head
 		nextMove.X += possible.x
