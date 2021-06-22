@@ -8,11 +8,6 @@ import (
 	"net/http"
 )
 
-type direction struct {
-	x, y    int
-	heading string
-}
-
 type Game struct {
 	ID      string `json:"id"`
 	Timeout int32  `json:"timeout"`
@@ -59,6 +54,11 @@ type GameRequest struct {
 type MoveResponse struct {
 	Move  string `json:"move"`
 	Shout string `json:"shout,omitempty"`
+}
+
+type direction struct {
+	x, y    int
+	heading string
 }
 
 type movesSet []direction
