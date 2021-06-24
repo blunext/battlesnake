@@ -1,12 +1,35 @@
 package main
 
-func avoidBoundaries(game GameRequest, moves movesSet) movesSet {
+type boardRepresentation map[Coord]struct{}
+
+func makeBoard(game GameRequest) boardRepresentation {
+	board := make(map[Coord]struct{})
+
+	for x := -1; x <= game.Board.Width; x++ {
+		board[Coord{X: x, Y: -1}] = struct{}{}
+		board[Coord{X: x, Y: game.Board.Height}] = struct{}{}
+	}
+	for y := -1; y <= game.Board.Height; y++ {
+		board[Coord{X: -1, Y: y}] = struct{}{}
+		board[Coord{X: game.Board.Width, Y: y}] = struct{}{}
+	}
+
+	for _, snake := range game.Board.Snakes {
+		var i int32
+		for i = 0; i < snake.Length-1; i++ { // without last element
+			board[snake.Body[i]] = struct{}{}
+		}
+	}
+	return board
+}
+
+func avoidTakenSpace(game GameRequest, moves movesSet, board boardRepresentation) movesSet {
 	resultMoves := copyMoves(moves)
 	for _, possible := range moves {
 		nextMove := game.You.Head
 		nextMove.X += possible.x
 		nextMove.Y += possible.y
-		if nextMove.X < 0 || nextMove.X >= game.Board.Width || nextMove.Y < 0 || nextMove.Y >= game.Board.Height {
+		if _, ok := board[nextMove]; ok {
 			resultMoves = removeMove(resultMoves, possible)
 		}
 	}
@@ -17,21 +40,6 @@ func copyMoves(moves movesSet) movesSet {
 	var resultMoves movesSet
 	for _, move := range moves {
 		resultMoves = append(resultMoves, move)
-	}
-	return resultMoves
-}
-
-func avoidSelf(game GameRequest, moves movesSet) movesSet {
-	resultMoves := copyMoves(moves)
-	for _, possible := range moves {
-		nextMove := game.You.Head
-		nextMove.X += possible.x
-		nextMove.Y += possible.y
-		for _, coord := range game.You.Body {
-			if nextMove.X == coord.X && nextMove.Y == coord.Y {
-				resultMoves = removeMove(resultMoves, possible)
-			}
-		}
 	}
 	return resultMoves
 }

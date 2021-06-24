@@ -14,7 +14,8 @@ func TestSomething(t *testing.T) {
 	game.You.Head.X = 0
 	game.You.Head.X = 0
 
-	moves = avoidBoundaries(game, moves)
+	board := makeBoard(game)
+	moves = avoidTakenSpace(game, moves, board)
 
 	// assert equality
 	assert.Equal(t, 123, 123, "they should be equal")

@@ -111,14 +111,14 @@ func HandleStart(w http.ResponseWriter, r *http.Request) {
 func HandleMove(w http.ResponseWriter, r *http.Request) {
 	//fmt.Printf("Next move\n")
 
-	request := GameRequest{}
-	err := json.NewDecoder(r.Body).Decode(&request)
+	game := GameRequest{}
+	err := json.NewDecoder(r.Body).Decode(&game)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	availableMoves := avoidBoundaries(request, newMoves())
-	availableMoves = avoidSelf(request, availableMoves)
+	board := makeBoard(game)
+	availableMoves := avoidTakenSpace(game, newMoves(), board)
 
 	move := newMoves()[0] // in
 	if len(availableMoves) > 0 {
@@ -129,7 +129,7 @@ func HandleMove(w http.ResponseWriter, r *http.Request) {
 		Move: move.heading,
 	}
 
-	fmt.Printf("move: %s, latency: %s\n", response.Move, request.You.Latency)
+	fmt.Printf("move: %s, latency: %s\n", response.Move, game.You.Latency)
 	w.Header().Set("Content-Type", "application/json")
 	err = json.NewEncoder(w).Encode(response)
 	if err != nil {
