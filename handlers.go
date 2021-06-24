@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"math/rand"
 	"net/http"
 )
 
@@ -118,12 +117,13 @@ func HandleMove(w http.ResponseWriter, r *http.Request) {
 	}
 
 	board := makeBoard(game)
-	availableMoves := avoidTakenSpace(game, newMoves(), board)
-
-	move := newMoves()[0] // in
-	if len(availableMoves) > 0 {
-		move = availableMoves[rand.Intn(len(availableMoves))]
-	}
+	//availableMoves := avoidTakenSpace(game.You.Head, newMoves(), board)
+	//
+	//move := newMoves()[0] // in
+	//if len(availableMoves) > 0 {
+	//	move = availableMoves[rand.Intn(len(availableMoves))]
+	//}
+	move := findDirection(game.You.Head, board)
 
 	response := MoveResponse{
 		Move: move.heading,
