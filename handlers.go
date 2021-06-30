@@ -58,16 +58,17 @@ type MoveResponse struct {
 type direction struct {
 	x, y    int
 	heading string
+	rank    int
 }
 
 type movesSet []direction
 
 func newMoves() movesSet {
 	return movesSet{
-		{0, 1, "up"},
-		{0, -1, "down"},
-		{-1, 0, "left"},
-		{1, 0, "right"},
+		{0, 1, "up", 0},
+		{0, -1, "down", 0},
+		{-1, 0, "left", 0},
+		{1, 0, "right", 0},
 	}
 }
 
@@ -123,10 +124,15 @@ func HandleMove(w http.ResponseWriter, r *http.Request) {
 	//if len(availableMoves) > 0 {
 	//	move = availableMoves[rand.Intn(len(availableMoves))]
 	//}
-	move := findDirection(game.You.Head, board)
+	moves := rankSpace(game.You.Head, board)
+	best := findBest(moves)
+
+	//sort.Slice(best, func(i, j int) bool {
+	//	return best.rank < best.rank
+	//})
 
 	response := MoveResponse{
-		Move: move.heading,
+		Move: best.heading,
 	}
 
 	fmt.Printf("move: %s, latency: %s\n", response.Move, game.You.Latency)
