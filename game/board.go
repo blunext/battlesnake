@@ -1,4 +1,4 @@
-package mygame
+package game
 
 type Game struct {
 	ID      string `json:"id"`
@@ -55,65 +55,43 @@ type direction struct {
 }
 
 type movesSet []direction
-
-type tile struct {
-	*Coord
-	board coordinatesMap
-}
-
-type coordinatesMap map[Coord]tile
-
-//func (t *tile) PathNeighbors() []astar.Pather {
-//	var neighbors []astar.Pather
-//	for _, next := range newMoves() {
-//		c := Coord{X: t.X + next.x, Y: t.Y + next.y}
-//		if tile, ok := t.board[c]; ok {
-//			neighbors = append(neighbors, &tile)
-//		}
-//	}
-//	return neighbors
-//}
-//
-//func (t *tile) PathNeighborCost(to astar.Pather) float64 {
-//	return t.MovementCost
-//}
-//
-//func (t *tile) PathEstimatedCost(to astar.Pather) float64 {
-//	return t.ManhattanDistance(to)
-//}
+type coordinatesMap map[Coord]Tile
 
 func MakeBoard(game GameRequest) coordinatesMap {
-	board := make(map[Coord]tile)
+	board := make(map[Coord]Tile)
 
 	for x := -1; x <= game.Board.Width; x++ {
 		c := Coord{X: x, Y: -1}
-		board[c] = tile{Coord: &c, board: board}
+		board[c] = Tile{Coord: &c, board: board, costIndex: wall}
 		c = Coord{X: x, Y: game.Board.Height}
-		board[c] = tile{Coord: &c, board: board}
+		board[c] = Tile{Coord: &c, board: board, costIndex: wall}
 	}
 	for y := -1; y <= game.Board.Height; y++ {
 		c := Coord{X: -1, Y: y}
-		board[c] = tile{Coord: &c, board: board}
+		board[c] = Tile{Coord: &c, board: board, costIndex: wall}
 		c = Coord{X: game.Board.Width, Y: y}
-		board[c] = tile{Coord: &c, board: board}
+		board[c] = Tile{Coord: &c, board: board, costIndex: wall}
 	}
 
-	for _, snake := range game.Board.Snakes {
+	for _, s := range game.Board.Snakes {
 		// TODO: tail dispears when no food is consumed
 		var i int32
-		for i = 0; i < snake.Length-1; i++ {
-			board[snake.Body[i]] = tile{Coord: &snake.Body[i], board: board}
+		for i = 0; i < s.Length-1; i++ {
+			board[s.Body[i]] = Tile{Coord: &s.Body[i], board: board, costIndex: snake}
 		}
-		if snake.Head.X == game.You.Head.X && snake.Head.Y == game.You.Head.Y {
+		if s.Head.X == game.You.Head.X && s.Head.Y == game.You.Head.Y {
 			continue
 		}
 
-		if snake.Length > game.You.Length {
+		if s.Length > game.You.Length {
 			for _, m := range newMoves() {
-				c := Coord{X: snake.Head.X + m.x, Y: snake.Head.Y + m.y}
-				board[c] = tile{Coord: &c, board: board}
+				c := Coord{X: s.Head.X + m.x, Y: s.Head.Y + m.y}
+				board[c] = Tile{Coord: &c, board: board, costIndex: headAround}
 			}
 		}
+	}
+	for _, f := range game.Board.Food {
+		board[f] = Tile{Coord: &f, board: board, costIndex: food}
 	}
 	return board
 }

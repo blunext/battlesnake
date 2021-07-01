@@ -1,4 +1,4 @@
-package mygame
+package game
 
 func avoidTakenSpace(head Coord, moves movesSet, board coordinatesMap) movesSet {
 	resultMoves := copyMoves(moves)
@@ -37,9 +37,10 @@ func RankSpace(head Coord, board coordinatesMap) []direction {
 		nextMove := head
 		nextMove.X += potential.x
 		nextMove.Y += potential.y
-		if _, ok := board[nextMove]; !ok {
-			visited := make(map[Coord]tile)
-			visited[nextMove] = tile{}
+		t, present := board[nextMove]
+		if !present || t.Cost() < NoPassCost {
+			visited := make(map[Coord]Tile)
+			visited[nextMove] = Tile{}
 			moves[i].rank = checkSpace(nextMove, board, 1, visited)
 			//fmt.Printf("potential rank %d\n", potential.rank)
 		}
@@ -53,8 +54,9 @@ func checkSpace(head Coord, board coordinatesMap, steps int, visited coordinates
 		nextMove.X += possible.x
 		nextMove.Y += possible.y
 		if _, ok := visited[nextMove]; !ok {
-			if _, ok = board[nextMove]; !ok {
-				visited[nextMove] = tile{}
+			t, present := board[nextMove]
+			if !present || t.Cost() < NoPassCost {
+				visited[nextMove] = Tile{}
 				steps++
 				steps += checkSpace(nextMove, board, steps, visited)
 			}
