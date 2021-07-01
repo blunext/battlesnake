@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
-	"github.com/BattlesnakeOfficial/starter-snake-go/mygame"
 	"github.com/stretchr/testify/assert"
+	"starter-snake-go/mygame"
 	"testing"
 )
 
@@ -44,10 +44,10 @@ func TestSomething(t *testing.T) {
 	}
 	addYou(&game, snake)
 	//fmt.Println(s)
-	board := mygame.makeBoard(game)
-	moves := mygame.rankSpace(game.You.Head, board)
+	board := mygame.MakeBoard(game)
+	moves := mygame.RankSpace(game.You.Head, board)
 
-	fmt.Println(mygame.findBest(moves))
+	fmt.Println(mygame.FindBest(moves))
 
 	// assert equality
 	assert.Equal(t, 123, 123, "they should be equal")
