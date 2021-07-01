@@ -1,4 +1,4 @@
-package main
+package mygame
 
 type Game struct {
 	ID      string `json:"id"`
@@ -50,7 +50,7 @@ type MoveResponse struct {
 
 type direction struct {
 	x, y    int
-	heading string
+	Heading string
 	rank    int
 }
 
@@ -82,7 +82,7 @@ type coordinatesMap map[Coord]tile
 //	return t.ManhattanDistance(to)
 //}
 
-func makeBoard(game GameRequest) coordinatesMap {
+func MakeBoard(game GameRequest) coordinatesMap {
 	board := make(map[Coord]tile)
 
 	for x := -1; x <= game.Board.Width; x++ {

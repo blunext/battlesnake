@@ -1,4 +1,4 @@
-package main
+package mygame
 
 func avoidTakenSpace(head Coord, moves movesSet, board coordinatesMap) movesSet {
 	resultMoves := copyMoves(moves)
@@ -23,7 +23,7 @@ func copyMoves(moves movesSet) movesSet {
 
 func removeMove(moves movesSet, toRemove direction) movesSet {
 	for i, m := range moves {
-		if m.heading == toRemove.heading {
+		if m.Heading == toRemove.Heading {
 			moves[len(moves)-1], moves[i] = moves[i], moves[len(moves)-1] // swap with last
 			return moves[:len(moves)-1]                                   // truncate last
 		}
@@ -31,7 +31,7 @@ func removeMove(moves movesSet, toRemove direction) movesSet {
 	return moves
 }
 
-func rankSpace(head Coord, board coordinatesMap) []direction {
+func RankSpace(head Coord, board coordinatesMap) []direction {
 	moves := newMoves()
 	for i, potential := range moves {
 		nextMove := head
@@ -63,7 +63,7 @@ func checkSpace(head Coord, board coordinatesMap, steps int, visited coordinates
 	return steps
 }
 
-func findBest(moves []direction) direction {
+func FindBest(moves []direction) direction {
 	var best direction
 	i := -1
 	for _, m := range moves {

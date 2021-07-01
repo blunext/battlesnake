@@ -2,33 +2,34 @@ package main
 
 import (
 	"fmt"
+	"github.com/BattlesnakeOfficial/starter-snake-go/mygame"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
 type pairs []int
 
-func addSnake(game *GameRequest, body []pairs) Battlesnake {
-	snake := Battlesnake{}
+func addSnake(game *mygame.GameRequest, body []pairs) mygame.Battlesnake {
+	snake := mygame.Battlesnake{}
 	for i, pair := range body {
 		if i == 0 {
 			snake.Head.X = pair[0]
 			snake.Head.Y = pair[1]
 		}
-		snake.Body = append(snake.Body, Coord{X: pair[0], Y: pair[1]})
+		snake.Body = append(snake.Body, mygame.Coord{X: pair[0], Y: pair[1]})
 	}
 	game.Board.Snakes = append(game.Board.Snakes, snake)
 	return snake
 }
 
-func addYou(game *GameRequest, body []pairs) {
+func addYou(game *mygame.GameRequest, body []pairs) {
 	snake := addSnake(game, body)
 	game.You = snake
 }
 func TestSomething(t *testing.T) {
 
 	//moves := newMoves()
-	game := GameRequest{}
+	game := mygame.GameRequest{}
 	game.Board.Width = 11
 	game.Board.Height = 11
 	game.You.Head.X = 5
@@ -43,10 +44,10 @@ func TestSomething(t *testing.T) {
 	}
 	addYou(&game, snake)
 	//fmt.Println(s)
-	board := makeBoard(game)
-	moves := rankSpace(game.You.Head, board)
+	board := mygame.makeBoard(game)
+	moves := mygame.rankSpace(game.You.Head, board)
 
-	fmt.Println(findBest(moves))
+	fmt.Println(mygame.findBest(moves))
 
 	// assert equality
 	assert.Equal(t, 123, 123, "they should be equal")
