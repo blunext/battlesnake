@@ -8,6 +8,7 @@ import (
 )
 
 func TestSomething(t *testing.T) {
+
 	//moves := newMoves()
 	g := game.GameRequest{}
 	g.Board.Width = 11
