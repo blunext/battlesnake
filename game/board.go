@@ -6,8 +6,8 @@ type Game struct {
 }
 
 type Coord struct {
-	X int `json:"x"`
-	Y int `json:"y"`
+	X int `json:"X"`
+	Y int `json:"Y"`
 }
 
 type Battlesnake struct {
@@ -48,56 +48,56 @@ type MoveResponse struct {
 	Shout string `json:"shout,omitempty"`
 }
 
-type direction struct {
-	x, y    int
+type Direction struct {
+	X, Y    int
 	Heading string
 	rank    int
 }
 
-type movesSet []direction
-type coordinatesMap map[Coord]Tile
+type movesSet []Direction
+type coordinatesMap map[Coord]*Tile
 
 func MakeBoard(game GameRequest) coordinatesMap {
-	board := make(map[Coord]Tile)
+	board := make(map[Coord]*Tile)
 
 	for x := -1; x <= game.Board.Width; x++ {
 		c := Coord{X: x, Y: -1}
-		board[c] = Tile{Coord: &c, board: board, costIndex: wall}
+		board[c] = &Tile{Coord: &c, board: board, costIndex: wall}
 		c = Coord{X: x, Y: game.Board.Height}
-		board[c] = Tile{Coord: &c, board: board, costIndex: wall}
+		board[c] = &Tile{Coord: &c, board: board, costIndex: wall}
 	}
 	for y := -1; y <= game.Board.Height; y++ {
 		c := Coord{X: -1, Y: y}
-		board[c] = Tile{Coord: &c, board: board, costIndex: wall}
+		board[c] = &Tile{Coord: &c, board: board, costIndex: wall}
 		c = Coord{X: game.Board.Width, Y: y}
-		board[c] = Tile{Coord: &c, board: board, costIndex: wall}
+		board[c] = &Tile{Coord: &c, board: board, costIndex: wall}
 	}
 
 	for _, s := range game.Board.Snakes {
 		// TODO: tail dispears when no food is consumed
 		var i int32
 		for i = 0; i < s.Length-1; i++ {
-			board[s.Body[i]] = Tile{Coord: &s.Body[i], board: board, costIndex: snake}
+			board[s.Body[i]] = &Tile{Coord: &s.Body[i], board: board, costIndex: snake}
 		}
 
 		if s.Head.X == game.You.Head.X && s.Head.Y == game.You.Head.Y {
 			continue
 		}
 		if s.Length > game.You.Length {
-			for _, m := range newMoves() {
-				c := Coord{X: s.Head.X + m.x, Y: s.Head.Y + m.y}
-				board[c] = Tile{Coord: &c, board: board, costIndex: headAround}
+			for _, m := range NewMoves() {
+				c := Coord{X: s.Head.X + m.X, Y: s.Head.Y + m.Y}
+				board[c] = &Tile{Coord: &c, board: board, costIndex: headAround}
 			}
 		}
 	}
 	for _, f := range game.Board.Food {
 		newF := f
-		board[newF] = Tile{Coord: &newF, board: board, costIndex: food}
+		board[newF] = &Tile{Coord: &newF, board: board, costIndex: food}
 	}
 	return board
 }
 
-func newMoves() movesSet {
+func NewMoves() movesSet {
 	return movesSet{
 		{0, 1, "up", 0},
 		{0, -1, "down", 0},

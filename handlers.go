@@ -60,20 +60,28 @@ func HandleMove(w http.ResponseWriter, r *http.Request) {
 	//if len(availableMoves) > 0 {
 	//	move = availableMoves[rand.Intn(len(availableMoves))]
 	//}
-
-	moves := game.RankSpace(request.You.Head, board)
-	game.FindFood(request.You.Head, board, request.Board.Food)
-	best := game.FindBest(moves)
+	var best game.Direction
+	c, ok := game.FindFood(request.You.Head, board, request.Board.Food)
+	if ok {
+		best = game.FindCoordinates(c, request.You.Head)
+	} else {
+		fmt.Println("nieeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee")
+		//moves := game.RankSpace(request.You.Head, board)
+		//best = game.FindBest(moves)
+	}
 
 	//sort.Slice(best, func(i, j int) bool {
 	//	return best.rank < best.rank
 	//})
 
+	fmt.Printf("head: %d, %d; move: %s, latency: %v, food, %v\n",
+		request.You.Head.X, request.You.Head.Y, best.Heading, request.You.Latency, ok)
+
+	//time.Sleep(5 * time.Second)
 	response := game.MoveResponse{
 		Move: best.Heading,
 	}
 
-	fmt.Printf("move: %s, latency: %s\n", response.Move, request.You.Latency)
 	w.Header().Set("Content-Type", "application/json")
 	err = json.NewEncoder(w).Encode(response)
 	if err != nil {

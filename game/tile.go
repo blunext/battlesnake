@@ -1,7 +1,6 @@
 package game
 
 import (
-	"fmt"
 	"github.com/beefsack/go-astar"
 )
 
@@ -13,7 +12,7 @@ const (
 	wall
 )
 
-const NoPassCost = 99999999
+const NoPassCost = 99999999999
 
 var tileKindCost = map[int]float64{
 	empty:      1.0,
@@ -31,15 +30,15 @@ type Tile struct {
 
 func (t *Tile) PathNeighbors() []astar.Pather {
 	var neighbors []astar.Pather
-	for _, next := range newMoves() {
-		c := Coord{X: t.X + next.x, Y: t.Y + next.y}
+	for _, next := range NewMoves() {
+		c := Coord{X: t.X + next.X, Y: t.Y + next.Y}
 		neighborTile, present := t.board[c]
 		if !present {
-			fmt.Printf("%d, %d\n", c.X, c.Y)
-			neighborTile = Tile{Coord: &c, board: t.board, costIndex: empty}
+			//fmt.Printf("%d, %d\n", c.X, c.Y)
+			neighborTile = &Tile{Coord: &c, board: t.board, costIndex: empty}
 			t.board[c] = neighborTile
 		}
-		neighbors = append(neighbors, &neighborTile)
+		neighbors = append(neighbors, neighborTile)
 	}
 	return neighbors
 }
