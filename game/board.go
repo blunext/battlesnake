@@ -79,10 +79,10 @@ func MakeBoard(game GameRequest) coordinatesMap {
 		for i = 0; i < s.Length-1; i++ {
 			board[s.Body[i]] = Tile{Coord: &s.Body[i], board: board, costIndex: snake}
 		}
+
 		if s.Head.X == game.You.Head.X && s.Head.Y == game.You.Head.Y {
 			continue
 		}
-
 		if s.Length > game.You.Length {
 			for _, m := range newMoves() {
 				c := Coord{X: s.Head.X + m.x, Y: s.Head.Y + m.y}
@@ -91,7 +91,8 @@ func MakeBoard(game GameRequest) coordinatesMap {
 		}
 	}
 	for _, f := range game.Board.Food {
-		board[f] = Tile{Coord: &f, board: board, costIndex: food}
+		newF := f
+		board[newF] = Tile{Coord: &newF, board: board, costIndex: food}
 	}
 	return board
 }

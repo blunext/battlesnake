@@ -60,7 +60,9 @@ func HandleMove(w http.ResponseWriter, r *http.Request) {
 	//if len(availableMoves) > 0 {
 	//	move = availableMoves[rand.Intn(len(availableMoves))]
 	//}
+
 	moves := game.RankSpace(request.You.Head, board)
+	game.FindFood(request.You.Head, board, request.Board.Food)
 	best := game.FindBest(moves)
 
 	//sort.Slice(best, func(i, j int) bool {

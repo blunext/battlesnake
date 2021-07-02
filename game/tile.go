@@ -1,6 +1,9 @@
 package game
 
-import "github.com/beefsack/go-astar"
+import (
+	"fmt"
+	"github.com/beefsack/go-astar"
+)
 
 const (
 	empty = iota
@@ -33,9 +36,12 @@ func (t *Tile) PathNeighbors() []astar.Pather {
 		neighborTile, present := t.board[c]
 		switch present {
 		case true:
+			//fmt.Printf("%d, %d\n", c.X, c.Y)
 			neighbors = append(neighbors, &neighborTile)
 		case false:
+			fmt.Printf("%d, %d\n", c.X, c.Y)
 			neighborTile = Tile{Coord: &c, board: t.board, costIndex: empty}
+			t.board[c] = neighborTile
 			neighbors = append(neighbors, &neighborTile)
 		}
 	}
