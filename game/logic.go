@@ -114,5 +114,5 @@ func FindCoordinates(c Coord, you Coord) Direction {
 			return m
 		}
 	}
-	panic("no moves")
+	panic("no moves...........................................................")
 }

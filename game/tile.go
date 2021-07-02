@@ -38,7 +38,9 @@ func (t *Tile) PathNeighbors() []astar.Pather {
 			neighborTile = &Tile{Coord: &c, board: t.board, costIndex: empty}
 			t.board[c] = neighborTile
 		}
-		neighbors = append(neighbors, neighborTile)
+		if tileKindCost[neighborTile.costIndex] < NoPassCost {
+			neighbors = append(neighbors, neighborTile)
+		}
 	}
 	return neighbors
 }
