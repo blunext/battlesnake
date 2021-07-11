@@ -5,8 +5,8 @@ import (
 	"github.com/beefsack/go-astar"
 )
 
-//func avoidTakenSpace(head Coord, moves movesSet, board coordinatesMap) movesSet {
-//	resultMoves := make(movesSet, len(moves))
+//func avoidTakenSpace(head Coord, moves []Direction, board boardDefinition) []Direction {
+//	resultMoves := make([]Direction, len(moves))
 //	copy(resultMoves, moves)
 //	for _, possible := range moves {
 //		nextMove := head
@@ -18,8 +18,8 @@ import (
 //	}
 //	return resultMoves
 //}
-
-//func removeMove(moves movesSet, toRemove Direction) movesSet {
+//
+//func removeMove(moves []Direction, toRemove Direction) []Direction {
 //	for i, m := range moves {
 //		if m.Heading == toRemove.Heading {
 //			moves[len(moves)-1], moves[i] = moves[i], moves[len(moves)-1] // swap with last
@@ -29,14 +29,17 @@ import (
 //	return moves
 //}
 
-func RankSpace(head Coord, board coordinatesMap) []Direction {
+func RankSpace(head Coord, board board) []Direction {
 	moves := NewMoves()
 	for i, potential := range moves {
 		nextMove := head
 		nextMove.X += potential.X
 		nextMove.Y += potential.Y
-		t, present := board[nextMove]
-		if !present || t.Cost() < NoPassCost {
+		t, present := board.getTile(nextMove.X, nextMove.Y)
+		if !present {
+			continue
+		}
+		if t.Cost() < NoPassCost {
 			visited := make(map[Coord]*Tile)
 			visited[nextMove] = &Tile{}
 			moves[i].rank = checkSpace(nextMove, board, 1, visited)
@@ -46,14 +49,17 @@ func RankSpace(head Coord, board coordinatesMap) []Direction {
 	return moves
 }
 
-func checkSpace(head Coord, board coordinatesMap, steps int, visited coordinatesMap) int {
+func checkSpace(head Coord, board board, steps int, visited map[Coord]*Tile) int {
 	for _, possible := range NewMoves() {
 		nextMove := head
 		nextMove.X += possible.X
 		nextMove.Y += possible.Y
 		if _, ok := visited[nextMove]; !ok {
-			t, present := board[nextMove]
-			if !present || t.Cost() < NoPassCost {
+			t, present := board.getTile(nextMove.X, nextMove.Y)
+			if !present {
+				continue
+			}
+			if t.Cost() < NoPassCost {
 				visited[nextMove] = &Tile{}
 				steps++
 				steps += checkSpace(nextMove, board, steps, visited)
@@ -76,41 +82,41 @@ func FindBest(moves []Direction) Direction {
 	return best
 }
 
-func FindFood(head Coord, board coordinatesMap, food []Coord) (Coord, bool) {
+func FindFood(head Coord, board board, food []Coord) (int, int, bool) {
 	const maxDistance = 999999999999999999.9
+	x, y := -1, -1
 	distance := maxDistance
 	foodCopied := make([]Coord, len(food))
 	copy(foodCopied, food)
-	headTile := board[head]
-	nextMove := &Coord{}
+	headTile, ok := board.getTile(head.X, head.Y)
+	if !ok {
+		panic("no head................")
+	}
 	for _, f := range foodCopied {
-		toTile := board[f]
+		toTile, ok := board.getTile(f.X, f.Y)
+		if !ok {
+			panic("no food................")
+		}
 		path, dist, found := astar.Path(headTile, toTile)
 		if found {
 			if distance > dist {
 				distance = dist
-				nextMove = path[len(path)-2].(*Tile).Coord
+				x = path[len(path)-2].(*Tile).x
+				y = path[len(path)-2].(*Tile).y
 			}
-			//fmt.Printf("path %v -> %v\n", head, f)
-			//fmt.Printf("dist %v\n", dist)
-			//fmt.Printf("path: ")
-			//for _, v := range path {
-			//	fmt.Printf("%v, ", v.(*Tile).Coord)
-			//}
-			//fmt.Println()
 		} else {
 			fmt.Printf("cannot find the path\n")
 		}
 	}
 	if distance == maxDistance {
-		return *nextMove, false
+		return x, y, false
 	}
-	return *nextMove, true
+	return x, y, true
 }
 
-func FindCoordinates(c Coord, you Coord) Direction {
+func FindCoordinates(x, y int, you Coord) Direction {
 	for _, m := range NewMoves() {
-		if m.X == c.X-you.X && m.Y == c.Y-you.Y {
+		if m.X == x-you.X && m.Y == y-you.Y {
 			return m
 		}
 	}

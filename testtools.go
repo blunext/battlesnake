@@ -1,6 +1,6 @@
 package main
 
-import "starter-snake-go/game"
+import "battlesnake/game"
 
 type pairs []int
 

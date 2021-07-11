@@ -1,4 +1,4 @@
-module starter-snake-go
+module battlesnake
 
 go 1.16
 

@@ -15,7 +15,7 @@ type Battlesnake struct {
 	Name    string  `json:"name"`
 	Health  int32   `json:"health"`
 	Body    []Coord `json:"body"`
-	Latency string  `json:"latency"`
+	Latency int32   `json:"latency"`
 	Head    Coord   `json:"head"`
 	Length  int32   `json:"length"`
 	Shout   string  `json:"shout"`
@@ -54,30 +54,25 @@ type Direction struct {
 	rank    int
 }
 
-type movesSet []Direction
-type coordinatesMap map[Coord]*Tile
+type board struct {
+	tiles    [][]*Tile
+	gameData GameRequest
+}
 
-func MakeBoard(game GameRequest) coordinatesMap {
-	board := make(map[Coord]*Tile)
+func MakeBoard(game GameRequest) board {
+	t := make([][]*Tile, game.Board.Height)
+	for i := range t {
+		t[i] = make([]*Tile, game.Board.Width)
+	}
 
-	for x := -1; x <= game.Board.Width; x++ {
-		c := Coord{X: x, Y: -1}
-		board[c] = &Tile{Coord: &c, board: board, costIndex: wall}
-		c = Coord{X: x, Y: game.Board.Height}
-		board[c] = &Tile{Coord: &c, board: board, costIndex: wall}
-	}
-	for y := -1; y <= game.Board.Height; y++ {
-		c := Coord{X: -1, Y: y}
-		board[c] = &Tile{Coord: &c, board: board, costIndex: wall}
-		c = Coord{X: game.Board.Width, Y: y}
-		board[c] = &Tile{Coord: &c, board: board, costIndex: wall}
-	}
+	board := board{tiles: t, gameData: game}
 
 	for _, s := range game.Board.Snakes {
-		// TODO: tail dispears when no food is consumed
+		// todo: Constrictor mode
 		var i int32
 		for i = 0; i < s.Length-1; i++ {
-			board[s.Body[i]] = &Tile{Coord: &s.Body[i], board: board, costIndex: snake}
+			board.tiles[s.Body[i].X][s.Body[i].Y] =
+				&Tile{x: s.Body[i].X, y: s.Body[i].Y, board: &board, costIndex: snake, snakeTileVanish: int(s.Length - i - 1)}
 		}
 
 		if s.Head.X == game.You.Head.X && s.Head.Y == game.You.Head.Y {
@@ -85,20 +80,39 @@ func MakeBoard(game GameRequest) coordinatesMap {
 		}
 		if s.Length > game.You.Length {
 			for _, m := range NewMoves() {
-				c := Coord{X: s.Head.X + m.X, Y: s.Head.Y + m.Y}
-				board[c] = &Tile{Coord: &c, board: board, costIndex: headAround}
+				if m.X < 0 || m.X >= game.Board.Width || m.Y < 0 || m.Y >= game.Board.Height {
+					continue
+				}
+				board.tiles[s.Head.X+m.X][s.Head.Y+m.Y] = &Tile{x: s.Head.X + m.X, y: s.Head.Y + m.Y, board: &board, costIndex: headAround}
 			}
 		}
 	}
+
 	for _, f := range game.Board.Food {
-		newF := f
-		board[newF] = &Tile{Coord: &newF, board: board, costIndex: food}
+		board.tiles[f.X][f.Y] = &Tile{x: f.X, y: f.Y, board: &board, costIndex: food}
 	}
+
+	for y := 0; y < game.Board.Height; y++ {
+		for x := 0; x < game.Board.Width; x++ {
+			tile := board.tiles[x][y]
+			if tile == nil {
+				board.tiles[x][y] = &Tile{x: x, y: y, board: &board, costIndex: empty}
+			}
+		}
+	}
+
 	return board
 }
 
-func NewMoves() movesSet {
-	return movesSet{
+func (b *board) getTile(x, y int) (*Tile, bool) {
+	if x < 0 || x >= b.gameData.Board.Width || y < 0 || y >= b.gameData.Board.Height {
+		return nil, false
+	}
+	return b.tiles[x][y], true
+}
+
+func NewMoves() []Direction {
+	return []Direction{
 		{0, 1, "up", 0},
 		{0, -1, "down", 0},
 		{-1, 0, "left", 0},

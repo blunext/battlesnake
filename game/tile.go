@@ -19,24 +19,21 @@ var tileKindCost = map[int]float64{
 	food:       1.0,
 	headAround: NoPassCost, // todo: change
 	snake:      NoPassCost,
-	wall:       NoPassCost,
 }
 
 type Tile struct {
-	*Coord
-	board     coordinatesMap
-	costIndex int
+	x, y            int
+	board           *board
+	costIndex       int
+	snakeTileVanish int
 }
 
 func (t *Tile) PathNeighbors() []astar.Pather {
 	var neighbors []astar.Pather
 	for _, next := range NewMoves() {
-		c := Coord{X: t.X + next.X, Y: t.Y + next.Y}
-		neighborTile, present := t.board[c]
+		neighborTile, present := t.board.getTile(t.x+next.X, t.y+next.Y)
 		if !present {
-			//fmt.Printf("%d, %d\n", c.X, c.Y)
-			neighborTile = &Tile{Coord: &c, board: t.board, costIndex: empty}
-			t.board[c] = neighborTile
+			continue
 		}
 		if tileKindCost[neighborTile.costIndex] < NoPassCost {
 			neighbors = append(neighbors, neighborTile)
@@ -51,11 +48,11 @@ func (t *Tile) PathNeighborCost(to astar.Pather) float64 {
 
 func (t *Tile) PathEstimatedCost(to astar.Pather) float64 {
 	toT := to.(*Tile)
-	absX := toT.X - t.X
+	absX := toT.x - t.y
 	if absX < 0 {
 		absX = -absX
 	}
-	absY := toT.Y - t.Y
+	absY := toT.x - t.y
 	if absY < 0 {
 		absY = -absY
 	}
