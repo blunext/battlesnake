@@ -1,9 +1,9 @@
 package main
 
 import (
-	"battlesnake/game"
 	"fmt"
 	"github.com/stretchr/testify/assert"
+	"snakehero/game"
 	"testing"
 )
 

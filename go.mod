@@ -1,4 +1,4 @@
-module battlesnake
+module snakehero
 
 go 1.16
 

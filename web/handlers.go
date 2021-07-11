@@ -1,11 +1,11 @@
 package web
 
 import (
-	"battlesnake/game"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
+	"snakehero/game"
 )
 
 // HandleIndex is called when your Battlesnake is created and refreshed

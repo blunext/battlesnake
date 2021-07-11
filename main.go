@@ -1,12 +1,12 @@
 package main
 
 import (
-	"battlesnake/web"
 	"fmt"
 	"log"
 	"net/http"
 	_ "net/http/pprof"
 	"os"
+	"snakehero/web"
 )
 
 func main() {
