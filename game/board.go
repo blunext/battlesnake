@@ -8,7 +8,7 @@ type Direction struct {
 
 type board struct {
 	tiles    [][]*Tile
-	gameData GameRequest
+	gameData *GameRequest
 }
 
 func MakeBoard(game GameRequest) board {
@@ -17,7 +17,7 @@ func MakeBoard(game GameRequest) board {
 		t[i] = make([]*Tile, game.Board.Width)
 	}
 
-	board := board{tiles: t, gameData: game}
+	board := board{tiles: t, gameData: &game}
 
 	for _, s := range game.Board.Snakes {
 		// todo: Constrictor mode
@@ -27,17 +27,17 @@ func MakeBoard(game GameRequest) board {
 				&Tile{x: s.Body[i].X, y: s.Body[i].Y, board: &board, costIndex: snake, snakeTileVanish: int(s.Length - i - 1)}
 		}
 
-		if s.Head.X == game.You.Head.X && s.Head.Y == game.You.Head.Y {
-			continue
-		}
-		if s.Length > game.You.Length {
-			for _, m := range NewMoves() {
-				if m.X < 0 || m.X >= game.Board.Width || m.Y < 0 || m.Y >= game.Board.Height {
-					continue
-				}
-				board.tiles[s.Head.X+m.X][s.Head.Y+m.Y] = &Tile{x: s.Head.X + m.X, y: s.Head.Y + m.Y, board: &board, costIndex: headAround}
-			}
-		}
+		//if s.Head.X == game.You.Head.X && s.Head.Y == game.You.Head.Y {
+		//	continue
+		//}
+		//if s.Length > game.You.Length {
+		//	for _, m := range NewMoves() {
+		//		if m.X < 0 || m.X >= game.Board.Width || m.Y < 0 || m.Y >= game.Board.Height {
+		//			continue
+		//		}
+		//		board.tiles[s.Head.X+m.X][s.Head.Y+m.Y] = &Tile{x: s.Head.X + m.X, y: s.Head.Y + m.Y, board: &board, costIndex: headAround}
+		//	}
+		//}
 	}
 
 	for _, f := range game.Board.Food {

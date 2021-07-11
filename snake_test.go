@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func TestSomething(t *testing.T) {
+func TestAll(t *testing.T) {
 
 	//moves := newMoves()
 	g := game.GameRequest{}
@@ -20,7 +20,7 @@ func TestSomething(t *testing.T) {
 	addSnake(&g, snake)
 	snake = []pairs{
 		//{1, 0}, {0, 0},
-		{1, 2}, {1, 1}, {1, 1},
+		{1, 2}, {1, 1}, {1, 0},
 	}
 	addYou(&g, snake)
 	food := []game.Coord{
@@ -36,6 +36,8 @@ func TestSomething(t *testing.T) {
 	fmt.Println("path ", best.Heading)
 
 	moves := game.RankSpace(g.You.Head, board)
+
+	game.Minimax(board, 0)
 
 	fmt.Println(game.FindBest(moves))
 
