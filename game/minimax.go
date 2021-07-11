@@ -10,12 +10,30 @@ type roundType []*Tile
 type roundsType []roundType
 
 func Minimax(board board, depth int) {
-	//rounds := allCombinations(board)
+	for _, rounds := range allCombinations(board) {
+		newBoard := copyBoard(board)
+		for _, move := range rounds {
+			newBoard.tiles[move.x][move.y] = &Tile{x: move.x, y: move.y, board: move.board}
 
-	//for _, r := range rounds {
-	//
-	//}
+			// dodać przełyżania snake w reqescie
 
+		}
+	}
+
+}
+
+func copyBoard(old board) board {
+	tiles := make([][]*Tile, old.gameData.Board.Height)
+	for i := range tiles {
+		tiles[i] = make([]*Tile, old.gameData.Board.Width)
+	}
+
+	for y, yTiles := range old.tiles {
+		for x, t := range yTiles {
+			tiles[x][y] = &Tile{x: t.x, y: t.y, board: t.board} // todo: snakeTileVanish
+		}
+	}
+	return board{tiles: tiles, gameData: old.gameData}
 }
 
 func allCombinations(board board) roundsType {
@@ -49,8 +67,8 @@ func allCombinations(board board) roundsType {
 			sum += comb.iterator
 		}
 		if sum == 0 {
-			break
+			return rounds
 		}
 	}
-	return rounds
+
 }
