@@ -28,8 +28,8 @@ type Tile struct {
 	snakeTileVanish int
 }
 
-func (t *Tile) PathNeighbors() []astar.Pather {
-	var neighbors []astar.Pather
+func (t *Tile) Neighbors() []*Tile {
+	var neighbors []*Tile
 	for _, next := range NewMoves() {
 		neighborTile, present := t.board.getTile(t.x+next.X, t.y+next.Y)
 		if !present {
@@ -38,6 +38,15 @@ func (t *Tile) PathNeighbors() []astar.Pather {
 		if tileKindCost[neighborTile.costIndex] < NoPassCost {
 			neighbors = append(neighbors, neighborTile)
 		}
+	}
+	return neighbors
+}
+
+// PathNeighbors repack into Pather interface
+func (t *Tile) PathNeighbors() []astar.Pather {
+	var neighbors []astar.Pather
+	for _, n := range t.Neighbors() {
+		neighbors = append(neighbors, n)
 	}
 	return neighbors
 }
