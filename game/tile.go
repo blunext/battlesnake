@@ -7,17 +7,17 @@ import (
 const (
 	empty = iota
 	food
-	headAround
+	//headAround
 	snake
 )
 
 const NoPassCost = 99999999999
 
 var tileKindCost = map[int]float64{
-	empty:      1.0,
-	food:       1.0,
-	headAround: NoPassCost, // todo: change
-	snake:      NoPassCost,
+	empty: 1.0,
+	food:  1.0,
+	//headAround: NoPassCost, // todo: change
+	snake: NoPassCost,
 }
 
 type Tile struct {

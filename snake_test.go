@@ -14,15 +14,15 @@ func TestAll(t *testing.T) {
 	g.Board.Width = 11
 	g.Board.Height = 11
 
-	snake := []pairs{
+	snake := [][]int{
 		{0, 5}, {1, 5}, {2, 5}, {3, 5}, {4, 5}, {5, 5}, {5, 4}, {5, 3},
 	}
-	addSnake(&g, snake)
-	snake = []pairs{
+	game.AddSTestSnake(&g, snake)
+	snake = [][]int{
 		//{1, 0}, {0, 0},
 		{1, 2}, {1, 1}, {1, 0},
 	}
-	addYou(&g, snake)
+	game.AddTestYou(&g, snake)
 	food := []game.Coord{
 		//{8, 8}, {7, 7},
 		{2, 0}, {5, 5},
