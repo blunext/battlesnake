@@ -18,9 +18,10 @@ type rounds []neighbours
 
 func Minimax(board board, depth int) {
 	for _, round := range allCombinations(board) {
+
 		newBoard := copyBoard(board)
 		for _, pair := range round {
-			increaseSnake := newBoard.tiles[pair.neighbour.x][pair.neighbour.y].costIndex == food
+			foundFood := newBoard.tiles[pair.neighbour.x][pair.neighbour.y].costIndex == food
 			newBoard.tiles[pair.neighbour.x][pair.neighbour.y] = &Tile{x: pair.neighbour.x, y: pair.neighbour.y, board: pair.neighbour.board}
 
 			for i, snake := range board.gameData.Board.Snakes {
@@ -30,21 +31,20 @@ func Minimax(board board, depth int) {
 					body = append(body, snake.Body...) //todo: make a copy first?
 					newBoard.gameData.Board.Snakes[i].Body = body
 					newBoard.gameData.Board.Snakes[i].Head = head
-					if increaseSnake {
+					newBoard.gameData.Board.Snakes[i].Health--
+					if foundFood {
 						newBoard.gameData.Board.Snakes[i].Length++
+					} else {
+						newBoard.gameData.Board.Snakes[i].Health--
 					}
 					if board.gameData.You.Head.X == pair.head.x && board.gameData.You.Head.Y == pair.head.y {
-						newBoard.gameData.You.Head = head
-						newBoard.gameData.You.Body = body
-						if increaseSnake {
-							newBoard.gameData.You.Length++
-						}
+						newBoard.gameData.You = newBoard.gameData.Board.Snakes[i]
 					}
 				}
 			}
 		}
 		if depth == 0 {
-			return
+			return // evaluate
 		}
 		depth--
 		Minimax(newBoard, depth)
@@ -69,6 +69,34 @@ func copyBoard(old board) board {
 }
 
 func allCombinations(board board) rounds {
+	list := makeListOfNeighbourLists(board)
+
+	rounds := rounds{}
+	for {
+		round := neighbours{}
+		for _, comb := range list {
+			round = append(round, comb.neighbours[comb.iterator])
+		}
+		rounds = append(rounds, round)
+		for i, _ := range list {
+			list[i].iterator++
+			if list[i].iterator < len(list[i].neighbours) {
+				break
+			}
+			list[i].iterator = 0
+		}
+		sum := 0
+		for _, comb := range list {
+			sum += comb.iterator
+		}
+		if sum == 0 {
+			return rounds
+		}
+	}
+
+}
+
+func makeListOfNeighbourLists(board board) listOfNeighbourLists {
 	listOfListsOfNeighbours := listOfNeighbourLists{}
 	for _, snake := range board.gameData.Board.Snakes {
 		listOfNeighbours := neighbourListWithIterator{}
@@ -83,28 +111,5 @@ func allCombinations(board board) rounds {
 		}
 		listOfListsOfNeighbours = append(listOfListsOfNeighbours, listOfNeighbours)
 	}
-
-	rounds := rounds{}
-	for {
-		round := neighbours{}
-		for _, comb := range listOfListsOfNeighbours {
-			round = append(round, comb.neighbours[comb.iterator])
-		}
-		rounds = append(rounds, round)
-		for i, _ := range listOfListsOfNeighbours {
-			listOfListsOfNeighbours[i].iterator++
-			if listOfListsOfNeighbours[i].iterator < len(listOfListsOfNeighbours[i].neighbours) {
-				break
-			}
-			listOfListsOfNeighbours[i].iterator = 0
-		}
-		sum := 0
-		for _, comb := range listOfListsOfNeighbours {
-			sum += comb.iterator
-		}
-		if sum == 0 {
-			return rounds
-		}
-	}
-
+	return listOfListsOfNeighbours
 }
