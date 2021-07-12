@@ -9,7 +9,6 @@ const (
 	food
 	headAround
 	snake
-	wall
 )
 
 const NoPassCost = 99999999999
