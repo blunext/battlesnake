@@ -37,11 +37,10 @@ func TestAll(t *testing.T) {
 
 	moves := game.RankSpace(g.You.Head, board)
 
-	game.Minimax(board, 0)
+	game.Minimax(board, 15)
 
 	fmt.Println(game.FindBest(moves))
 
 	// assert equality
 	assert.Equal(t, 123, 123, "they should be equal")
-
 }

@@ -1,23 +1,53 @@
 package game
 
-type headsType struct {
-	neighbours []*Tile
-	iterator   int
-}
-type neighboursListType []headsType
+import "github.com/jinzhu/copier"
 
-type roundType []*Tile
-type roundsType []roundType
+type headAndNeighbour struct {
+	head      *Tile
+	neighbour *Tile
+}
+type neighbours []headAndNeighbour
+
+type neighbourListWithIterator struct {
+	neighbours
+	iterator int
+}
+
+type listOfNeighbourLists []neighbourListWithIterator
+type rounds []neighbours
 
 func Minimax(board board, depth int) {
-	for _, rounds := range allCombinations(board) {
+	for _, round := range allCombinations(board) {
 		newBoard := copyBoard(board)
-		for _, move := range rounds {
-			newBoard.tiles[move.x][move.y] = &Tile{x: move.x, y: move.y, board: move.board}
+		for _, pair := range round {
+			increaseSnake := newBoard.tiles[pair.neighbour.x][pair.neighbour.y].costIndex == food
+			newBoard.tiles[pair.neighbour.x][pair.neighbour.y] = &Tile{x: pair.neighbour.x, y: pair.neighbour.y, board: pair.neighbour.board}
 
-			// dodać przełyżania snake w reqescie
-
+			for i, snake := range board.gameData.Board.Snakes {
+				if snake.Head.X == pair.head.x && snake.Head.Y == pair.head.y {
+					head := Coord{X: pair.neighbour.x, Y: pair.neighbour.y}
+					body := append([]Coord{}, head)
+					body = append(body, snake.Body...) //todo: make a copy first?
+					newBoard.gameData.Board.Snakes[i].Body = body
+					newBoard.gameData.Board.Snakes[i].Head = head
+					if increaseSnake {
+						newBoard.gameData.Board.Snakes[i].Length++
+					}
+					if board.gameData.You.Head.X == pair.head.x && board.gameData.You.Head.Y == pair.head.y {
+						newBoard.gameData.You.Head = head
+						newBoard.gameData.You.Body = body
+						if increaseSnake {
+							newBoard.gameData.You.Length++
+						}
+					}
+				}
+			}
 		}
+		if depth == 0 {
+			return
+		}
+		depth--
+		Minimax(newBoard, depth)
 	}
 
 }
@@ -33,37 +63,43 @@ func copyBoard(old board) board {
 			tiles[x][y] = &Tile{x: t.x, y: t.y, board: t.board} // todo: snakeTileVanish
 		}
 	}
-	return board{tiles: tiles, gameData: old.gameData}
+	gameRequest := GameRequest{}
+	copier.Copy(&gameRequest, old.gameData)
+	return board{tiles: tiles, gameData: &gameRequest}
 }
 
-func allCombinations(board board) roundsType {
-	neighboursList := neighboursListType{}
+func allCombinations(board board) rounds {
+	listOfListsOfNeighbours := listOfNeighbourLists{}
 	for _, snake := range board.gameData.Board.Snakes {
-		heads := headsType{}
+		listOfNeighbours := neighbourListWithIterator{}
 		head, ok := board.getTile(snake.Head.X, snake.Head.Y)
 		if !ok {
 			panic("no head in minimax")
 		}
-		heads.neighbours = head.Neighbors()
-		neighboursList = append(neighboursList, heads)
+
+		for _, n := range head.Neighbors() {
+			pair := headAndNeighbour{head: head, neighbour: n}
+			listOfNeighbours.neighbours = append(listOfNeighbours.neighbours, pair)
+		}
+		listOfListsOfNeighbours = append(listOfListsOfNeighbours, listOfNeighbours)
 	}
 
-	rounds := roundsType{}
+	rounds := rounds{}
 	for {
-		round := roundType{}
-		for _, comb := range neighboursList {
+		round := neighbours{}
+		for _, comb := range listOfListsOfNeighbours {
 			round = append(round, comb.neighbours[comb.iterator])
 		}
 		rounds = append(rounds, round)
-		for i, _ := range neighboursList {
-			neighboursList[i].iterator++
-			if neighboursList[i].iterator < len(neighboursList[i].neighbours) {
+		for i, _ := range listOfListsOfNeighbours {
+			listOfListsOfNeighbours[i].iterator++
+			if listOfListsOfNeighbours[i].iterator < len(listOfListsOfNeighbours[i].neighbours) {
 				break
 			}
-			neighboursList[i].iterator = 0
+			listOfListsOfNeighbours[i].iterator = 0
 		}
 		sum := 0
-		for _, comb := range neighboursList {
+		for _, comb := range listOfListsOfNeighbours {
 			sum += comb.iterator
 		}
 		if sum == 0 {
