@@ -6,7 +6,7 @@ import (
 
 type snakeMove struct {
 	SnakeId string
-	Move    *Tile
+	Move    Tile
 	payoff  float64
 }
 
@@ -26,13 +26,13 @@ const dead = -9999999999999999.0
 var Counter int
 
 func Minimax(board board, depth int, heroId string) snakeMoves {
-	Counter++
+	//Counter++
+	depth--
 	combinations := allCombinations(board)
 	for _, round := range combinations {
 		newBoard := copyBoard(board) // todo: for next newboard we could revert prev changes
 		prepareBoard(board, newBoard, round)
-		evaluateRound(newBoard, round) // changes payoff in combination round
-		depth--
+		evaluateRound(newBoard, round, heroId) // changes payoff in combination round
 		if depth == 0 {
 			return round
 		}
@@ -49,25 +49,27 @@ func Minimax(board board, depth int, heroId string) snakeMoves {
 			}
 		}
 	}
-	var avarage float64
-	var count float64
+	Counter++
+	onePlayer := true
+	avarage, count := 0.0, 0.0
 	for _, round := range combinations {
 		for _, r := range round {
 			if r.SnakeId == heroId {
 				continue
 			}
+			onePlayer = false
 			avarage += r.payoff
 			count++
 		}
 	}
 	avarage = avarage / count
-
+	//temp := dead
 	best := snakeMoves{}
 	for _, round := range combinations {
 		distanse := 0.0
 		for _, r := range round {
-			if r.SnakeId == heroId {
-				if r.payoff-avarage > distanse {
+			if r.SnakeId != heroId {
+				if r.payoff-avarage >= distanse {
 					distanse = r.payoff - avarage
 					best = round
 				}
@@ -75,6 +77,9 @@ func Minimax(board board, depth int, heroId string) snakeMoves {
 		}
 	}
 	if len(best) == 0 {
+		if onePlayer {
+			return combinations[0]
+		}
 		panic("no best moves")
 	}
 	return best
@@ -82,14 +87,14 @@ func Minimax(board board, depth int, heroId string) snakeMoves {
 
 func prepareBoard(board board, newBoard board, round snakeMoves) {
 	for _, oneMove := range round {
-		foundFood := board.tiles[oneMove.Move.x][oneMove.Move.y].costIndex == food
+		foundFood := board.tiles[oneMove.Move.X][oneMove.Move.Y].costIndex == food
 
-		newHeadPos := Tile{x: oneMove.Move.x, y: oneMove.Move.y, board: oneMove.Move.board}
-		newBoard.tiles[oneMove.Move.x][oneMove.Move.y] = &newHeadPos
+		newHeadPos := Tile{X: oneMove.Move.X, Y: oneMove.Move.Y, board: oneMove.Move.board}
+		newBoard.tiles[oneMove.Move.X][oneMove.Move.Y] = &newHeadPos
 
 		for i, snake := range board.GameData.Board.Snakes {
 			if snake.ID == oneMove.SnakeId {
-				head := Coord{X: oneMove.Move.x, Y: oneMove.Move.y}
+				head := Coord{X: oneMove.Move.X, Y: oneMove.Move.Y}
 				body := append([]Coord{}, head)
 				body = append(body, snake.Body...) //todo: make a copy first?
 				newBoard.GameData.Board.Snakes[i].Body = body
@@ -100,7 +105,7 @@ func prepareBoard(board board, newBoard board, round snakeMoves) {
 				} else {
 					newBoard.GameData.Board.Snakes[i].Health--
 					lastBodyPart := snake.Body[len(snake.Body)-1]
-					emptyTile := Tile{x: lastBodyPart.X, y: lastBodyPart.Y, board: &newBoard, costIndex: empty}
+					emptyTile := Tile{X: lastBodyPart.X, Y: lastBodyPart.Y, board: &newBoard, costIndex: empty}
 					newBoard.tiles[lastBodyPart.X][lastBodyPart.Y] = &emptyTile
 				}
 				if board.GameData.You.ID == oneMove.SnakeId {
@@ -120,7 +125,7 @@ func copyBoard(old board) board {
 
 	for y, yTiles := range old.tiles {
 		for x, t := range yTiles {
-			tiles[x][y] = &Tile{x: t.x, y: t.y, board: t.board} // todo: snakeTileVanish
+			tiles[x][y] = &Tile{X: t.X, Y: t.Y, board: t.board} // todo: snakeTileVanish
 		}
 	}
 	gameRequest := GameRequest{}
@@ -169,7 +174,7 @@ func makeListOfNeighbourTilesForAllSnakes(board board) neighbourTilesForAllSnake
 		}
 
 		for _, m := range head.Neighbors() {
-			move := snakeMove{SnakeId: snake.ID, Move: m}
+			move := snakeMove{SnakeId: snake.ID, Move: *m}
 			listOfNeighbours.snakeMoves = append(listOfNeighbours.snakeMoves, move)
 		}
 		listOfListsOfNeighbours = append(listOfListsOfNeighbours, listOfNeighbours)

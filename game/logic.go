@@ -101,8 +101,8 @@ func FindFood(head Coord, board board, food []Coord) (int, int, bool) {
 		if found {
 			if distance > dist {
 				distance = dist
-				x = path[len(path)-2].(*Tile).x
-				y = path[len(path)-2].(*Tile).y
+				x = path[len(path)-2].(*Tile).X
+				y = path[len(path)-2].(*Tile).Y
 			}
 		} else {
 			fmt.Printf("cannot find the path\n")

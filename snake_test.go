@@ -20,10 +20,10 @@ func TestAll(t *testing.T) {
 	}
 	game.AddSTestSnake(&g, snake)
 
-	snake = [][]int{
-		{0, 8}, {1, 8}, {2, 8}, {3, 8}, {4, 8}, {5, 8},
-	}
-	game.AddSTestSnake(&g, snake)
+	//snake = [][]int{
+	//	{0, 8}, {1, 8}, {2, 8}, {3, 8}, {4, 8}, {5, 8},
+	//}
+	//game.AddSTestSnake(&g, snake)
 
 	snake = [][]int{
 		//{1, 0}, {0, 0},
@@ -32,7 +32,7 @@ func TestAll(t *testing.T) {
 	game.AddTestYou(&g, snake)
 	food := []game.Coord{
 		//{8, 8}, {7, 7},
-		{2, 0}, {5, 5},
+		{2, 2}, {5, 5},
 	}
 	g.Board.Food = food
 	//fmt.Println(s)
@@ -42,10 +42,10 @@ func TestAll(t *testing.T) {
 	best := game.FindCoordinates(x, y, g.You.Head)
 	fmt.Println("path ", best.Heading)
 
-	moves := game.RankSpace(g.You.Head, board)
+	//moves := game.RankSpace(g.You.Head, board)
 
 	tm := time.Now()
-	round := game.Minimax(board, 12, board.GameData.You.ID)
+	round := game.Minimax(board, 5, board.GameData.You.ID)
 	fmt.Printf("counter %v\n", game.Counter)
 	for _, r := range round {
 		if r.SnakeId == board.GameData.You.ID {
@@ -53,8 +53,8 @@ func TestAll(t *testing.T) {
 		}
 	}
 	fmt.Printf("%v\n", time.Since(tm))
-
-	fmt.Println(game.FindBest(moves))
+	//
+	//fmt.Println(game.FindBest(moves))
 
 	// assert equality
 	assert.Equal(t, 123, 123, "they should be equal")

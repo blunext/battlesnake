@@ -21,7 +21,7 @@ var tileKindCost = map[int]float64{
 }
 
 type Tile struct {
-	x, y            int
+	X, Y            int
 	board           *board
 	costIndex       int
 	snakeTileVanish int
@@ -30,7 +30,7 @@ type Tile struct {
 func (t *Tile) Neighbors() []*Tile {
 	var neighbors []*Tile
 	for _, next := range NewMoves() {
-		neighborTile, present := t.board.getTile(t.x+next.X, t.y+next.Y)
+		neighborTile, present := t.board.getTile(t.X+next.X, t.Y+next.Y)
 		if !present {
 			continue
 		}
@@ -56,11 +56,11 @@ func (t *Tile) PathNeighborCost(to astar.Pather) float64 {
 
 func (t *Tile) PathEstimatedCost(to astar.Pather) float64 {
 	toT := to.(*Tile)
-	absX := toT.x - t.y
+	absX := toT.X - t.Y
 	if absX < 0 {
 		absX = -absX
 	}
-	absY := toT.x - t.y
+	absY := toT.X - t.Y
 	if absY < 0 {
 		absY = -absY
 	}

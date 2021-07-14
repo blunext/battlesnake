@@ -1,17 +1,30 @@
 package game
 
-import "math/rand"
-
-type payoff struct {
-	snakeId string
-	payoff  float64
-}
-
-type payoffs []payoff
+//type payoff struct {
+//	snakeId string
+//	payoff  float64
+//}
 
 // changes payoff in combination round
-func evaluateRound(board board, moves snakeMoves) {
+func evaluateRound(board board, moves []snakeMove, heroId string) {
+	//type x struct {
+	//	snakeId string
+	//	lenght  int
+	//}
+	//tab := []x{}
+	//for i, m := range moves {
+	//	tab = append(tab, x{snakeId: m.SnakeId, lenght: int(board.getBattlesnake(moves[i].SnakeId).Length)})
+	//}
+	//sort.SliceStable(tab, func(i, j int) bool {
+	//	return tab[i].lenght < tab[j].lenght
+	//})
+	//
+	//for i, s := range tab {
+	//
+	//}
+
 	for i, _ := range moves {
-		moves[i].payoff = rand.Float64()
+		moves[i].payoff = float64(board.getBattlesnake(moves[i].SnakeId).Length)
 	}
+
 }

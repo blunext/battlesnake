@@ -24,7 +24,7 @@ func MakeBoard(game GameRequest) board {
 		var i int32
 		for i = 0; i < s.Length-1; i++ {
 			board.tiles[s.Body[i].X][s.Body[i].Y] =
-				&Tile{x: s.Body[i].X, y: s.Body[i].Y, board: &board, costIndex: snake, snakeTileVanish: int(s.Length - i - 1)}
+				&Tile{X: s.Body[i].X, Y: s.Body[i].Y, board: &board, costIndex: snake, snakeTileVanish: int(s.Length - i - 1)}
 		}
 
 		//if s.Head.X == game.You.Head.X && s.Head.Y == game.You.Head.Y {
@@ -35,20 +35,20 @@ func MakeBoard(game GameRequest) board {
 		//		if m.X < 0 || m.X >= game.Board.Width || m.Y < 0 || m.Y >= game.Board.Height {
 		//			continue
 		//		}
-		//		board.tiles[s.Head.X+m.X][s.Head.Y+m.Y] = &Tile{x: s.Head.X + m.X, y: s.Head.Y + m.Y, board: &board, costIndex: headAround}
+		//		board.tiles[s.Head.X+m.X][s.Head.Y+m.Y] = &Tile{X: s.Head.X + m.X, Y: s.Head.Y + m.Y, board: &board, costIndex: headAround}
 		//	}
 		//}
 	}
 
 	for _, f := range game.Board.Food {
-		board.tiles[f.X][f.Y] = &Tile{x: f.X, y: f.Y, board: &board, costIndex: food}
+		board.tiles[f.X][f.Y] = &Tile{X: f.X, Y: f.Y, board: &board, costIndex: food}
 	}
 
 	for y := 0; y < game.Board.Height; y++ {
 		for x := 0; x < game.Board.Width; x++ {
 			tile := board.tiles[x][y]
 			if tile == nil {
-				board.tiles[x][y] = &Tile{x: x, y: y, board: &board, costIndex: empty}
+				board.tiles[x][y] = &Tile{X: x, Y: y, board: &board, costIndex: empty}
 			}
 		}
 	}
@@ -61,6 +61,15 @@ func (b *board) getTile(x, y int) (*Tile, bool) {
 		return nil, false
 	}
 	return b.tiles[x][y], true
+}
+
+func (b *board) getBattlesnake(id string) *Battlesnake {
+	for i, _ := range b.GameData.Board.Snakes {
+		if b.GameData.Board.Snakes[i].ID == id {
+			return &b.GameData.Board.Snakes[i]
+		}
+	}
+	panic("battlesnake not found")
 }
 
 func NewMoves() []Direction {

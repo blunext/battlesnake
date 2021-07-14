@@ -52,30 +52,29 @@ func HandleMove(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	board := game.MakeBoard(request)
-	//availableMoves := avoidTakenSpace(game.You.Head, newMoves(), board)
-	//
-	//move := newMoves()[0] // in
-	//if len(availableMoves) > 0 {
-	//	move = availableMoves[rand.Intn(len(availableMoves))]
-	//}
 	var best game.Direction
-	x, y, ok := game.FindFood(request.You.Head, board, request.Board.Food)
-	if ok {
-		best = game.FindCoordinates(x, y, request.You.Head)
-	} else {
-		fmt.Println("nieeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee")
-		//moves := game.RankSpace(request.You.Head, board)
-		//best = game.FindBest(moves)
+	board := game.MakeBoard(request)
+
+	round := game.Minimax(board, 6, board.GameData.You.ID)
+	fmt.Printf("counter %v\n", game.Counter)
+	for _, r := range round {
+		if r.SnakeId == board.GameData.You.ID {
+			//fmt.Printf("move: %v\n", r.Move)
+			best = game.FindCoordinates(r.Move.X, r.Move.Y, request.You.Head)
+		}
 	}
-
-	//sort.Slice(best, func(i, j int) bool {
-	//	return best.rank < best.rank
-	//})
-
-	fmt.Printf("head: %d, %d; move: %s, latency: %v, food, %v\n",
-		request.You.Head.X, request.You.Head.Y, best.Heading, request.You.Latency, ok)
+	//
+	//x, y, ok := game.FindFood(request.You.Head, board, request.Board.Food)
+	//if ok {
+	//	best = game.FindCoordinates(x, y, request.You.Head)
+	//} else {
+	//	fmt.Println("nieeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee")
+	//	//moves := game.RankSpace(request.You.Head, board)
+	//	//best = game.FindBest(moves)
+	//}
+	//
+	//fmt.Printf("head: %d, %d; move: %s, latency: %v, food, %v\n",
+	//	request.You.Head.X, request.You.Head.Y, best.Heading, request.You.Latency, ok)
 
 	//time.Sleep(5 * time.Second)
 	response := game.MoveResponse{
