@@ -45,7 +45,8 @@ func TestAll(t *testing.T) {
 	moves := game.RankSpace(g.You.Head, board)
 
 	tm := time.Now()
-	round := game.Minimax(board, 20, board.GameData.You.ID)
+	round := game.Minimax(board, 12, board.GameData.You.ID)
+	fmt.Printf("counter %v\n", game.Counter)
 	for _, r := range round {
 		if r.SnakeId == board.GameData.You.ID {
 			fmt.Printf("move: %v\n", r.Move)

@@ -23,7 +23,10 @@ type rounds []snakeMoves
 
 const dead = -9999999999999999.0
 
+var Counter int
+
 func Minimax(board board, depth int, heroId string) snakeMoves {
+	Counter++
 	combinations := allCombinations(board)
 	for _, round := range combinations {
 		newBoard := copyBoard(board) // todo: for next newboard we could revert prev changes
@@ -45,9 +48,36 @@ func Minimax(board board, depth int, heroId string) snakeMoves {
 				}
 			}
 		}
-		return round
 	}
-	panic("ale o co chodzi")
+	var avarage float64
+	var count float64
+	for _, round := range combinations {
+		for _, r := range round {
+			if r.SnakeId == heroId {
+				continue
+			}
+			avarage += r.payoff
+			count++
+		}
+	}
+	avarage = avarage / count
+
+	best := snakeMoves{}
+	for _, round := range combinations {
+		distanse := 0.0
+		for _, r := range round {
+			if r.SnakeId == heroId {
+				if r.payoff-avarage > distanse {
+					distanse = r.payoff - avarage
+					best = round
+				}
+			}
+		}
+	}
+	if len(best) == 0 {
+		panic("no best moves")
+	}
+	return best
 }
 
 func prepareBoard(board board, newBoard board, round snakeMoves) {
