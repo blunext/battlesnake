@@ -8,7 +8,7 @@ type Direction struct {
 
 type board struct {
 	tiles    [][]*Tile
-	gameData *GameRequest
+	GameData *GameRequest
 }
 
 func MakeBoard(game GameRequest) board {
@@ -17,7 +17,7 @@ func MakeBoard(game GameRequest) board {
 		t[i] = make([]*Tile, game.Board.Width)
 	}
 
-	board := board{tiles: t, gameData: &game}
+	board := board{tiles: t, GameData: &game}
 
 	for _, s := range game.Board.Snakes {
 		// todo: Constrictor mode
@@ -57,7 +57,7 @@ func MakeBoard(game GameRequest) board {
 }
 
 func (b *board) getTile(x, y int) (*Tile, bool) {
-	if x < 0 || x >= b.gameData.Board.Width || y < 0 || y >= b.gameData.Board.Height {
+	if x < 0 || x >= b.GameData.Board.Width || y < 0 || y >= b.GameData.Board.Height {
 		return nil, false
 	}
 	return b.tiles[x][y], true
