@@ -55,7 +55,7 @@ func HandleMove(w http.ResponseWriter, r *http.Request) {
 	var best game.Direction
 	board := game.MakeBoard(request)
 
-	round := game.Minimax(board, 6, board.GameData.You.ID)
+	round := game.Minimax(board, game.MMdepth, board.GameData.You.ID)
 	fmt.Printf("counter %v\n", game.Counter)
 	for _, r := range round {
 		if r.SnakeId == board.GameData.You.ID {

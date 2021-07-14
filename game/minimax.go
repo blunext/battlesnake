@@ -4,6 +4,8 @@ import (
 	"github.com/jinzhu/copier"
 )
 
+const MMdepth = 4
+
 type snakeMove struct {
 	SnakeId string
 	Move    Tile
