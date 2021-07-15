@@ -46,7 +46,7 @@ func TestAll(t *testing.T) {
 
 	tm := time.Now()
 	round := game.Minimax(board, game.MMdepth, board.GameData.You.ID)
-	fmt.Printf("counter %v\n", game.Counter)
+	//fmt.Printf("counter %v\n", game.Counter)
 	for _, r := range round {
 		if r.SnakeId == board.GameData.You.ID {
 			fmt.Printf("move: %v\n", r.Move)

@@ -4,7 +4,7 @@ import (
 	"github.com/jinzhu/copier"
 )
 
-const MMdepth = 4
+const MMdepth = 2
 
 type snakeMove struct {
 	SnakeId string
@@ -25,8 +25,6 @@ type rounds []snakeMoves
 
 const dead = -9999999999999999.0
 
-var Counter int
-
 func Minimax(board board, depth int, heroId string) snakeMoves {
 	//Counter++
 	depth--
@@ -39,19 +37,9 @@ func Minimax(board board, depth int, heroId string) snakeMoves {
 			return round
 		}
 		nextLevel := Minimax(newBoard, depth, heroId)
-		for _, r := range round {
-			for _, x := range nextLevel {
-				if r.SnakeId == heroId && r.SnakeId == x.SnakeId && r.payoff < x.payoff {
-					r.payoff = x.payoff
-					break
-				}
-				if r.SnakeId == x.SnakeId && r.payoff > x.payoff {
-					r.payoff = x.payoff
-				}
-			}
-		}
+		mergelevels(round, nextLevel, heroId)
 	}
-	Counter++
+
 	onePlayer := true
 	avarage, count := 0.0, 0.0
 	for _, round := range combinations {
@@ -85,6 +73,20 @@ func Minimax(board board, depth int, heroId string) snakeMoves {
 		panic("no best moves")
 	}
 	return best
+}
+
+func mergelevels(round snakeMoves, nextLevel snakeMoves, heroId string) {
+	for _, r := range round {
+		for _, x := range nextLevel {
+			if r.SnakeId == heroId && r.SnakeId == x.SnakeId && r.payoff < x.payoff {
+				r.payoff = x.payoff
+				break
+			}
+			if r.SnakeId == x.SnakeId && r.payoff > x.payoff {
+				r.payoff = x.payoff
+			}
+		}
+	}
 }
 
 func prepareBoard(board board, newBoard board, round snakeMoves) {
