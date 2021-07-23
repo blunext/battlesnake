@@ -137,6 +137,9 @@ func (b *board) allCombinations() rounds {
 		for _, comb := range list {
 			round = append(round, comb.snakeMoves[comb.iterator])
 		}
+		if len(round) == 0 {
+			return roundList
+		}
 		roundList = append(roundList, round)
 		for i, _ := range list {
 			list[i].iterator++
@@ -153,20 +156,24 @@ func (b *board) allCombinations() rounds {
 			return roundList
 		}
 	}
+
 }
 
 func (b *board) makeListOfNeighbourTilesForAllSnakes() neighbourTilesForAllSnakes {
 	listOfListsOfNeighbours := neighbourTilesForAllSnakes{}
 	for _, snake := range b.GameData.Board.Snakes {
-		listOfNeighbours := neighbourListWithIterator{}
 		head, ok := b.getTile(snake.Head.X, snake.Head.Y)
 		if !ok {
 			panic("no head in minimax")
 		}
 
+		listOfNeighbours := neighbourListWithIterator{}
 		for _, m := range head.Neighbors() {
 			move := snakeMove{SnakeId: snake.ID, Move: *m}
 			listOfNeighbours.snakeMoves = append(listOfNeighbours.snakeMoves, move)
+		}
+		if len(listOfNeighbours.snakeMoves) == 0 {
+			return listOfListsOfNeighbours
 		}
 		listOfListsOfNeighbours = append(listOfListsOfNeighbours, listOfNeighbours)
 	}

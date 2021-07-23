@@ -17,7 +17,7 @@ func main() {
 
 	http.HandleFunc("/", web.HandleIndex)
 	http.HandleFunc("/start", web.HandleStart)
-	http.HandleFunc("/move", web.HandleMove)
+	http.HandleFunc("/move", web.HandleMove())
 	http.HandleFunc("/end", web.HandleEnd)
 
 	fmt.Printf("Starting Battlesnake Server at http://0.0.0.0:%s...\n", port)

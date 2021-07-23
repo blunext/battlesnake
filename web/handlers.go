@@ -44,47 +44,52 @@ func HandleStart(w http.ResponseWriter, r *http.Request) {
 // HandleMove is called for each turn of each game.
 // Valid responses are "up", "down", "left", or "right".
 // TODO: Use the information in the GameRequest object to determine your next move.
-func HandleMove(w http.ResponseWriter, r *http.Request) {
-	//fmt.Printf("Next move\n")
 
-	request := game.GameRequest{}
-	err := json.NewDecoder(r.Body).Decode(&request)
-	if err != nil {
-		log.Fatal(err)
-	}
-	var best game.Direction
-	board := game.MakeBoard(request)
+func HandleMove() http.HandlerFunc {
 
-	round := game.Minimax(board, game.MMdepth, board.GameData.You.ID)
+	return func(w http.ResponseWriter, r *http.Request) {
 
-	for _, r := range round {
-		if r.SnakeId == board.GameData.You.ID {
-			//fmt.Printf("move: %v\n", r.Move)
-			best = game.FindCoordinates(r.Move.X, r.Move.Y, request.You.Head)
+		request := game.GameRequest{}
+		err := json.NewDecoder(r.Body).Decode(&request)
+		if err != nil {
+			log.Fatal(err)
 		}
-	}
-	//
-	//x, y, ok := game.FindFood(request.You.Head, board, request.Board.Food)
-	//if ok {
-	//	best = game.FindCoordinates(x, y, request.You.Head)
-	//} else {
-	//	fmt.Println("nieeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee")
-	//	//moves := game.RankSpace(request.You.Head, board)
-	//	//best = game.FindBest(moves)
-	//}
-	//
-	//fmt.Printf("head: %d, %d; move: %s, latency: %v, food, %v\n",
-	//	request.You.Head.X, request.You.Head.Y, best.Heading, request.You.Latency, ok)
+		var best game.Direction
+		board := game.MakeBoard(request)
 
-	//time.Sleep(5 * time.Second)
-	response := game.MoveResponse{
-		Move: best.Heading,
-	}
+		response := game.MoveResponse{}
+		round := game.Minimax(board, game.MMdepth, board.GameData.You.ID)
+		if len(round) == 0 {
+			response.Move = "up"
+		} else {
+			for _, r := range round {
+				if r.SnakeId == board.GameData.You.ID {
+					//fmt.Printf("move: %v\n", r.Move)
+					best = game.FindCoordinates(r.Move.X, r.Move.Y, request.You.Head)
+				}
+			}
+			response.Move = best.Heading
+		}
+		//
+		//x, y, ok := game.FindFood(request.You.Head, board, request.Board.Food)
+		//if ok {
+		//	best = game.FindCoordinates(x, y, request.You.Head)
+		//} else {
+		//	fmt.Println("nieeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee")
+		//	//moves := game.RankSpace(request.You.Head, board)
+		//	//best = game.FindBest(moves)
+		//}
+		//
+		//fmt.Printf("head: %d, %d; move: %s, latency: %v, food, %v\n",
+		//	request.You.Head.X, request.You.Head.Y, best.Heading, request.You.Latency, ok)
 
-	w.Header().Set("Content-Type", "application/json")
-	err = json.NewEncoder(w).Encode(response)
-	if err != nil {
-		log.Fatal(err)
+		//time.Sleep(5 * time.Second)
+
+		w.Header().Set("Content-Type", "application/json")
+		err = json.NewEncoder(w).Encode(response)
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 }
 

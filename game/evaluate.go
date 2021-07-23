@@ -23,8 +23,8 @@ func evaluateRound(board board, moves []snakeMove, heroId string) {
 	//
 	//}
 
-	for i, _ := range moves {
-		moves[i].payoff = float64(board.getBattlesnake(moves[i].SnakeId).Length)
+	for i := range moves {
+		p := float64(board.getBattlesnake(moves[i].SnakeId).Length)
+		moves[i].payoff = p
 	}
-
 }
