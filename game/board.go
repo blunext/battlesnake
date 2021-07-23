@@ -1,6 +1,8 @@
 package game
 
-import "github.com/jinzhu/copier"
+import (
+	"github.com/jinzhu/copier"
+)
 
 type Direction struct {
 	X, Y    int
@@ -82,7 +84,7 @@ func (b *board) copyBoard() board {
 
 	for y, yTiles := range b.tiles {
 		for x, t := range yTiles {
-			tiles[x][y] = &Tile{X: t.X, Y: t.Y, board: t.board} // todo: snakeTileVanish
+			tiles[x][y] = &Tile{X: t.X, Y: t.Y, board: t.board, costIndex: t.costIndex} // todo: snakeTileVanish
 		}
 	}
 	gameRequest := GameRequest{}
@@ -101,8 +103,8 @@ func (b *board) applyMoves(round snakeMoves) {
 		b.tiles[oneMove.Move.X][oneMove.Move.Y] = &newHeadTile
 
 		for i := range b.GameData.Board.Snakes {
-			if b.GameData.Board.Snakes[i].ID == oneMove.SnakeId {
-				snake := &b.GameData.Board.Snakes[i]
+			snake := &b.GameData.Board.Snakes[i]
+			if snake.ID == oneMove.SnakeId {
 				head := Coord{X: oneMove.Move.X, Y: oneMove.Move.Y}
 				body := append([]Coord{}, head)
 				body = append(body, snake.Body...) //todo: make a copy first?
@@ -170,3 +172,13 @@ func (b *board) makeListOfNeighbourTilesForAllSnakes() neighbourTilesForAllSnake
 	}
 	return listOfListsOfNeighbours
 }
+
+//func (b *board) evaluateRound(moves []snakeMove, heroId string) {
+//	for i := range moves {
+//		moves[i].payoff = float64(board.getBattlesnake(moves[i].SnakeId).Length)
+//		if moves[i].payoff == 4 || moves[i].payoff == 9 {
+//			fmt.Println("sdsdddaaaaaaaaaaa")
+//		}
+//	}
+//
+//}
