@@ -24,7 +24,7 @@ const dead = -9999999999999999.0
 func Minimax(board board, depth int, heroId string) snakeMoves {
 	//Counter++
 	depth--
-	combinations := allCombinations(board)
+	combinations := board.allCombinations()
 	for _, round := range combinations {
 		newBoard := board.copyBoard() // todo: for next newboard we could revert prev changes
 		newBoard.applyMoves(round)
@@ -33,9 +33,13 @@ func Minimax(board board, depth int, heroId string) snakeMoves {
 			return round
 		}
 		nextLevel := Minimax(newBoard, depth, heroId)
-		mergelevels(round, nextLevel, heroId)
+		mergeLevels(round, nextLevel, heroId)
 	}
 
+	return bestMove(combinations, heroId)
+}
+
+func bestMove(combinations rounds, heroId string) snakeMoves {
 	onePlayer := true
 	avarage, count := 0.0, 0.0
 	for _, round := range combinations {
@@ -49,7 +53,6 @@ func Minimax(board board, depth int, heroId string) snakeMoves {
 		}
 	}
 	avarage = avarage / count
-	//temp := dead
 	best := snakeMoves{}
 	for _, round := range combinations {
 		distanse := 0.0
@@ -71,7 +74,7 @@ func Minimax(board board, depth int, heroId string) snakeMoves {
 	return best
 }
 
-func mergelevels(round snakeMoves, nextLevel snakeMoves, heroId string) {
+func mergeLevels(round snakeMoves, nextLevel snakeMoves, heroId string) {
 	for _, r := range round {
 		for _, x := range nextLevel {
 			if r.SnakeId == heroId && r.SnakeId == x.SnakeId && r.payoff < x.payoff {
@@ -85,6 +88,7 @@ func mergelevels(round snakeMoves, nextLevel snakeMoves, heroId string) {
 	}
 }
 
+/*
 func allCombinations(board board) rounds {
 	list := makeListOfNeighbourTilesForAllSnakes(board)
 
@@ -130,3 +134,4 @@ func makeListOfNeighbourTilesForAllSnakes(board board) neighbourTilesForAllSnake
 	}
 	return listOfListsOfNeighbours
 }
+*/

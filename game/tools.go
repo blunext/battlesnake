@@ -40,3 +40,12 @@ func AddTestYou(g *GameRequest, body [][]int) {
 	snake := AddSTestSnake(g, body)
 	g.You = snake
 }
+
+func NewMoves() []Direction {
+	return []Direction{
+		{0, 1, "up", 0},
+		{0, -1, "down", 0},
+		{-1, 0, "left", 0},
+		{1, 0, "right", 0},
+	}
+}

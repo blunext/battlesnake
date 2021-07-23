@@ -126,11 +126,47 @@ func (b *board) applyMoves(round snakeMoves) {
 	}
 }
 
-func NewMoves() []Direction {
-	return []Direction{
-		{0, 1, "up", 0},
-		{0, -1, "down", 0},
-		{-1, 0, "left", 0},
-		{1, 0, "right", 0},
+func (b *board) allCombinations() rounds {
+	list := b.makeListOfNeighbourTilesForAllSnakes()
+
+	roundList := rounds{}
+	for {
+		round := snakeMoves{}
+		for _, comb := range list {
+			round = append(round, comb.snakeMoves[comb.iterator])
+		}
+		roundList = append(roundList, round)
+		for i, _ := range list {
+			list[i].iterator++
+			if list[i].iterator < len(list[i].snakeMoves) {
+				break
+			}
+			list[i].iterator = 0
+		}
+		sum := 0
+		for _, comb := range list {
+			sum += comb.iterator
+		}
+		if sum == 0 {
+			return roundList
+		}
 	}
+}
+
+func (b *board) makeListOfNeighbourTilesForAllSnakes() neighbourTilesForAllSnakes {
+	listOfListsOfNeighbours := neighbourTilesForAllSnakes{}
+	for _, snake := range b.GameData.Board.Snakes {
+		listOfNeighbours := neighbourListWithIterator{}
+		head, ok := b.getTile(snake.Head.X, snake.Head.Y)
+		if !ok {
+			panic("no head in minimax")
+		}
+
+		for _, m := range head.Neighbors() {
+			move := snakeMove{SnakeId: snake.ID, Move: *m}
+			listOfNeighbours.snakeMoves = append(listOfNeighbours.snakeMoves, move)
+		}
+		listOfListsOfNeighbours = append(listOfListsOfNeighbours, listOfNeighbours)
+	}
+	return listOfListsOfNeighbours
 }
