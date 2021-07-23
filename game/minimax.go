@@ -1,10 +1,6 @@
 package game
 
-import (
-	"github.com/jinzhu/copier"
-)
-
-const MMdepth = 2
+const MMdepth = 5
 
 type snakeMove struct {
 	SnakeId string
@@ -30,8 +26,8 @@ func Minimax(board board, depth int, heroId string) snakeMoves {
 	depth--
 	combinations := allCombinations(board)
 	for _, round := range combinations {
-		newBoard := copyBoard(board) // todo: for next newboard we could revert prev changes
-		prepareBoard(board, newBoard, round)
+		newBoard := board.copyBoard() // todo: for next newboard we could revert prev changes
+		newBoard.applyMoves(round)
 		evaluateRound(newBoard, round, heroId) // changes payoff in combination round
 		if depth == 0 {
 			return round
@@ -87,57 +83,6 @@ func mergelevels(round snakeMoves, nextLevel snakeMoves, heroId string) {
 			}
 		}
 	}
-}
-
-func prepareBoard(board board, newBoard board, round snakeMoves) {
-	for _, oneMove := range round {
-		foundFood := board.tiles[oneMove.Move.X][oneMove.Move.Y].costIndex == food
-
-		newHeadPos := Tile{X: oneMove.Move.X, Y: oneMove.Move.Y, board: oneMove.Move.board}
-		newBoard.tiles[oneMove.Move.X][oneMove.Move.Y] = &newHeadPos
-
-		for i, snake := range board.GameData.Board.Snakes {
-			if snake.ID == oneMove.SnakeId {
-				head := Coord{X: oneMove.Move.X, Y: oneMove.Move.Y}
-				body := append([]Coord{}, head)
-				body = append(body, snake.Body...) //todo: make a copy first?
-				newBoard.GameData.Board.Snakes[i].Body = body
-				newBoard.GameData.Board.Snakes[i].Head = head
-				if foundFood {
-					newBoard.GameData.Board.Snakes[i].Length++
-					newBoard.GameData.Board.Snakes[i].Health = 100
-				} else {
-					newBoard.GameData.Board.Snakes[i].Health--
-					lastBodyPart := snake.Body[len(snake.Body)-1]
-					emptyTile := Tile{X: lastBodyPart.X, Y: lastBodyPart.Y, board: &newBoard, costIndex: empty}
-					newBoard.tiles[lastBodyPart.X][lastBodyPart.Y] = &emptyTile
-				}
-				if board.GameData.You.ID == oneMove.SnakeId {
-					newBoard.GameData.You = newBoard.GameData.Board.Snakes[i]
-				}
-				break
-			}
-		}
-	}
-}
-
-func copyBoard(old board) board {
-	tiles := make([][]*Tile, old.GameData.Board.Height)
-	for i := range tiles {
-		tiles[i] = make([]*Tile, old.GameData.Board.Width)
-	}
-
-	for y, yTiles := range old.tiles {
-		for x, t := range yTiles {
-			tiles[x][y] = &Tile{X: t.X, Y: t.Y, board: t.board} // todo: snakeTileVanish
-		}
-	}
-	gameRequest := GameRequest{}
-	err := copier.Copy(&gameRequest, old.GameData)
-	if err != nil {
-		panic("cannot copy request")
-	}
-	return board{tiles: tiles, GameData: &gameRequest}
 }
 
 func allCombinations(board board) rounds {

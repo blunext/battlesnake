@@ -1,5 +1,7 @@
 package game
 
+import "github.com/jinzhu/copier"
+
 type Direction struct {
 	X, Y    int
 	Heading string
@@ -70,6 +72,58 @@ func (b *board) getBattlesnake(id string) *Battlesnake {
 		}
 	}
 	panic("battlesnake not found")
+}
+
+func (b *board) copyBoard() board {
+	tiles := make([][]*Tile, b.GameData.Board.Height)
+	for i := range tiles {
+		tiles[i] = make([]*Tile, b.GameData.Board.Width)
+	}
+
+	for y, yTiles := range b.tiles {
+		for x, t := range yTiles {
+			tiles[x][y] = &Tile{X: t.X, Y: t.Y, board: t.board} // todo: snakeTileVanish
+		}
+	}
+	gameRequest := GameRequest{}
+	err := copier.Copy(&gameRequest, b.GameData)
+	if err != nil {
+		panic("cannot copy request")
+	}
+	return board{tiles: tiles, GameData: &gameRequest}
+}
+
+func (b *board) applyMoves(round snakeMoves) {
+	for _, oneMove := range round {
+		foundFood := b.tiles[oneMove.Move.X][oneMove.Move.Y].costIndex == food
+
+		newHeadTile := Tile{X: oneMove.Move.X, Y: oneMove.Move.Y, board: b}
+		b.tiles[oneMove.Move.X][oneMove.Move.Y] = &newHeadTile
+
+		for i := range b.GameData.Board.Snakes {
+			if b.GameData.Board.Snakes[i].ID == oneMove.SnakeId {
+				snake := &b.GameData.Board.Snakes[i]
+				head := Coord{X: oneMove.Move.X, Y: oneMove.Move.Y}
+				body := append([]Coord{}, head)
+				body = append(body, snake.Body...) //todo: make a copy first?
+				snake.Body = body
+				snake.Head = head
+				if foundFood {
+					snake.Length++
+					snake.Health = 100
+				} else {
+					snake.Health--
+					lastBodyPart := snake.Body[len(snake.Body)-1]
+					emptyTile := Tile{X: lastBodyPart.X, Y: lastBodyPart.Y, board: b, costIndex: empty}
+					b.tiles[lastBodyPart.X][lastBodyPart.Y] = &emptyTile
+				}
+				if b.GameData.You.ID == oneMove.SnakeId {
+					b.GameData.You = *snake
+				}
+				break
+			}
+		}
+	}
 }
 
 func NewMoves() []Direction {
