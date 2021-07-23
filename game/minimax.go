@@ -55,11 +55,11 @@ func bestMove(combinations rounds, heroId string) snakeMoves {
 	avarage = avarage / count
 	best := snakeMoves{}
 	for _, round := range combinations {
-		distanse := 0.0
+		distance := 0.0
 		for _, r := range round {
 			if r.SnakeId != heroId {
-				if r.payoff-avarage >= distanse {
-					distanse = r.payoff - avarage
+				if r.payoff-avarage >= distance {
+					distance = r.payoff - avarage
 					best = round
 				}
 			}
@@ -77,7 +77,7 @@ func bestMove(combinations rounds, heroId string) snakeMoves {
 func mergeLevels(round snakeMoves, nextLevel snakeMoves, heroId string) {
 	for _, r := range round {
 		for _, x := range nextLevel {
-			if r.SnakeId == heroId && r.SnakeId == x.SnakeId && r.payoff < x.payoff {
+			if r.SnakeId == heroId && x.SnakeId == heroId && r.payoff < x.payoff {
 				r.payoff = x.payoff
 				break
 			}
@@ -87,51 +87,3 @@ func mergeLevels(round snakeMoves, nextLevel snakeMoves, heroId string) {
 		}
 	}
 }
-
-/*
-func allCombinations(board board) rounds {
-	list := makeListOfNeighbourTilesForAllSnakes(board)
-
-	roundList := rounds{}
-	for {
-		round := snakeMoves{}
-		for _, comb := range list {
-			round = append(round, comb.snakeMoves[comb.iterator])
-		}
-		roundList = append(roundList, round)
-		for i, _ := range list {
-			list[i].iterator++
-			if list[i].iterator < len(list[i].snakeMoves) {
-				break
-			}
-			list[i].iterator = 0
-		}
-		sum := 0
-		for _, comb := range list {
-			sum += comb.iterator
-		}
-		if sum == 0 {
-			return roundList
-		}
-	}
-
-}
-
-func makeListOfNeighbourTilesForAllSnakes(board board) neighbourTilesForAllSnakes {
-	listOfListsOfNeighbours := neighbourTilesForAllSnakes{}
-	for _, snake := range board.GameData.Board.Snakes {
-		listOfNeighbours := neighbourListWithIterator{}
-		head, ok := board.getTile(snake.Head.X, snake.Head.Y)
-		if !ok {
-			panic("no head in minimax")
-		}
-
-		for _, m := range head.Neighbors() {
-			move := snakeMove{SnakeId: snake.ID, Move: *m}
-			listOfNeighbours.snakeMoves = append(listOfNeighbours.snakeMoves, move)
-		}
-		listOfListsOfNeighbours = append(listOfListsOfNeighbours, listOfNeighbours)
-	}
-	return listOfListsOfNeighbours
-}
-*/
