@@ -128,10 +128,10 @@ func (b *board) applyMoves(round snakeMoves) {
 	}
 }
 
-func (b *board) allCombinations() rounds {
+func (b *board) allCombinations() []snakeMoves {
 	list := b.makeListOfNeighbourTilesForAllSnakes()
 
-	roundList := rounds{}
+	roundList := []snakeMoves{}
 	for {
 		round := snakeMoves{}
 		for _, comb := range list {
@@ -179,13 +179,3 @@ func (b *board) makeListOfNeighbourTilesForAllSnakes() neighbourTilesForAllSnake
 	}
 	return listOfListsOfNeighbours
 }
-
-//func (b *board) evaluateRound(moves []snakeMove, heroId string) {
-//	for i := range moves {
-//		moves[i].payoff = float64(board.getBattlesnake(moves[i].SnakeId).Length)
-//		if moves[i].payoff == 4 || moves[i].payoff == 9 {
-//			fmt.Println("sdsdddaaaaaaaaaaa")
-//		}
-//	}
-//
-//}

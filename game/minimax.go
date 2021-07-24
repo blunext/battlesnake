@@ -22,8 +22,6 @@ type neighbourListWithIterator struct {
 
 type neighbourTilesForAllSnakes []neighbourListWithIterator
 
-type rounds []snakeMoves
-
 const dead = -9999999999999999.0
 
 var Counter int
@@ -38,7 +36,7 @@ func Minimax(board board, depth int, heroId string) snakeMoves {
 		for _, round := range combinations {
 			Counter++
 			wg.Add(1)
-			go func(r snakeMoves, s chan snakeMoves) {
+			go func(r snakeMoves, moves chan snakeMoves) {
 				newBoard := board.copyBoard() // todo: for next newboard we could revert prev changes
 				newBoard.applyMoves(round)
 				evaluateRound(newBoard, round, heroId) // changes payoff in combination round
@@ -46,10 +44,10 @@ func Minimax(board board, depth int, heroId string) snakeMoves {
 					nextLevel := Minimax(newBoard, depth, heroId)
 					mergeLevels(round, nextLevel, heroId)
 				}
-				s <- round
+				moves <- round
 			}(round, movesCh)
 		}
-		rounds := rounds{}
+		rounds := []snakeMoves{}
 		go func() {
 			for r := range movesCh {
 				rounds = append(rounds, r)
@@ -73,7 +71,7 @@ func Minimax(board board, depth int, heroId string) snakeMoves {
 	}
 }
 
-func bestMove(combinations rounds, heroId string) snakeMoves {
+func bestMove(combinations []snakeMoves, heroId string) snakeMoves {
 	avarage, count := 0.0, 0.0
 	for _, round := range combinations {
 		for _, r := range round {
