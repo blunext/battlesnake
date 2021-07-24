@@ -2,6 +2,7 @@ package models
 
 import (
 	"github.com/jinzhu/copier"
+	"log"
 )
 
 type Direction struct {
@@ -31,55 +32,65 @@ type NeighbourListWithIterator struct {
 type NeighbourTilesForAllSnakes []NeighbourListWithIterator
 
 func MakeBoard(game GameRequest) MyBoard {
-	t := make([][]*Tile, game.Board.Height)
+	t := make([][]*Tile, game.Board.Height+2)
 	for i := range t {
-		t[i] = make([]*Tile, game.Board.Width)
+		t[i] = make([]*Tile, game.Board.Width+2)
 	}
 
 	board := MyBoard{tiles: t, GameData: &game}
 
 	for _, s := range game.Board.Snakes {
 		// todo: Constrictor mode
-		var i int32
-		for i = 0; i < s.Length-1; i++ {
-			board.tiles[s.Body[i].X][s.Body[i].Y] =
-				&Tile{X: s.Body[i].X, Y: s.Body[i].Y, board: &board, costIndex: snake, snakeTileVanish: int(s.Length - i - 1)}
+		for i := 0; i < int(s.Length); i++ {
+			t := Tile{X: s.Body[i].X, Y: s.Body[i].Y, board: &board, costIndex: snake, snakeTileNo: i}
+			board.SetTile(t.X, t.Y, &t)
 		}
-
-		//if s.Head.X == play.You.Head.X && s.Head.Y == play.You.Head.Y {
-		//	continue
-		//}
-		//if s.Length > play.You.Length {
-		//	for _, m := range NewMoves() {
-		//		if m.X < 0 || m.X >= play.Board.Width || m.Y < 0 || m.Y >= play.Board.Height {
-		//			continue
-		//		}
-		//		MyBoard.tiles[s.Head.X+m.X][s.Head.Y+m.Y] = &Tile{X: s.Head.X + m.X, Y: s.Head.Y + m.Y, MyBoard: &MyBoard, costIndex: headAround}
-		//	}
-		//}
 	}
 
 	for _, f := range game.Board.Food {
-		board.tiles[f.X][f.Y] = &Tile{X: f.X, Y: f.Y, board: &board, costIndex: food}
+		t := Tile{X: f.X, Y: f.Y, board: &board, costIndex: food}
+		board.SetTile(t.X, t.Y, &t)
 	}
 
 	for y := 0; y < game.Board.Height; y++ {
 		for x := 0; x < game.Board.Width; x++ {
-			tile := board.tiles[x][y]
+			tile := board.Tile(x, y)
 			if tile == nil {
-				board.tiles[x][y] = &Tile{X: x, Y: y, board: &board, costIndex: empty}
+				t := Tile{X: x, Y: y, board: &board, costIndex: empty}
+				board.SetTile(t.X, t.Y, &t)
 			}
 		}
 	}
 
+	//walls
+	for y := -1; y <= game.Board.Height; y++ {
+		t := Tile{X: -1, Y: y, board: &board, costIndex: wall}
+		board.SetTile(t.X, t.Y, &t)
+		t = Tile{X: game.Board.Width, Y: y, board: &board, costIndex: wall}
+		board.SetTile(t.X, t.Y, &t)
+	}
+
+	for x := -1; x <= game.Board.Width; x++ {
+		t := Tile{X: x, Y: -1, board: &board, costIndex: wall}
+		board.SetTile(t.X, t.Y, &t)
+		t = Tile{X: x, Y: game.Board.Height, board: &board, costIndex: wall}
+		board.SetTile(t.X, t.Y, &t)
+	}
 	return board
 }
 
-func (b *MyBoard) GetTile(x, y int) (*Tile, bool) {
-	if x < 0 || x >= b.GameData.Board.Width || y < 0 || y >= b.GameData.Board.Height {
-		return nil, false
+func (b *MyBoard) SetTile(x, y int, t *Tile) {
+	b.tiles[x+1][y+1] = t
+}
+
+func (b *MyBoard) Tile(x, y int) *Tile {
+	x++
+	y++
+	if x < 0 || x > b.GameData.Board.Width || y < 0 || y > b.GameData.Board.Height {
+		log.Panicf("##############: tile out of range: %d-1, %d-1\n", x, y)
+
 	}
-	return b.tiles[x][y], true
+	return b.tiles[x][y]
 }
 
 func (b *MyBoard) GetBattlesnake(id string) *Battlesnake {
@@ -198,11 +209,7 @@ func (b *MyBoard) AllCombinations() []SnakeMoves {
 func (b *MyBoard) makeListOfNeighbourTilesForAllSnakes() NeighbourTilesForAllSnakes {
 	listOfListsOfNeighbours := NeighbourTilesForAllSnakes{}
 	for _, snake := range b.GameData.Board.Snakes {
-		head, ok := b.GetTile(snake.Head.X, snake.Head.Y)
-		if !ok {
-			panic("no head in minimax")
-		}
-
+		head := b.Tile(snake.Head.X, snake.Head.Y)
 		listOfNeighbours := NeighbourListWithIterator{}
 		for _, m := range head.Neighbors() {
 			move := SnakeMove{SnakeId: snake.ID, Move: *m}

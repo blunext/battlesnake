@@ -36,10 +36,8 @@ func RankSpace(head models.Coord, board models.MyBoard) []models.Direction {
 		nextMove := head
 		nextMove.X += potential.X
 		nextMove.Y += potential.Y
-		t, present := board.GetTile(nextMove.X, nextMove.Y)
-		if !present {
-			continue
-		}
+		t := board.Tile(nextMove.X, nextMove.Y)
+
 		if t.Cost() < models.NoPassCost {
 			visited := make(map[models.Coord]*models.Tile)
 			visited[nextMove] = &models.Tile{}
@@ -56,10 +54,7 @@ func checkSpace(head models.Coord, board models.MyBoard, steps int, visited map[
 		nextMove.X += possible.X
 		nextMove.Y += possible.Y
 		if _, ok := visited[nextMove]; !ok {
-			t, present := board.GetTile(nextMove.X, nextMove.Y)
-			if !present {
-				continue
-			}
+			t := board.Tile(nextMove.X, nextMove.Y)
 			if t.Cost() < models.NoPassCost {
 				visited[nextMove] = &models.Tile{}
 				steps++
@@ -89,15 +84,9 @@ func FindFood(head models.Coord, board models.MyBoard, food []models.Coord) (int
 	distance := maxDistance
 	foodCopied := make([]models.Coord, len(food))
 	copy(foodCopied, food)
-	headTile, ok := board.GetTile(head.X, head.Y)
-	if !ok {
-		panic("no head................")
-	}
+	headTile := board.Tile(head.X, head.Y)
 	for _, f := range foodCopied {
-		toTile, ok := board.GetTile(f.X, f.Y)
-		if !ok {
-			panic("no food................")
-		}
+		toTile := board.Tile(f.X, f.Y)
 		path, dist, found := astar.Path(headTile, toTile)
 		if found {
 			if distance > dist {

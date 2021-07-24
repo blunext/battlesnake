@@ -1,6 +1,7 @@
 package models
 
 import (
+	"fmt"
 	"github.com/beefsack/go-astar"
 )
 
@@ -9,6 +10,7 @@ const (
 	food
 	//headAround
 	snake
+	wall
 )
 
 const NoPassCost = 99999999999
@@ -18,25 +20,27 @@ var tileKindCost = map[int]float64{
 	food:  1.0,
 	//headAround: NoPassCost, // todo: change
 	snake: NoPassCost,
+	wall:  NoPassCost,
 }
 
 type Tile struct {
-	X, Y            int
-	board           *MyBoard
-	costIndex       int
-	snakeTileVanish int
+	X, Y        int
+	board       *MyBoard
+	costIndex   int
+	snakeTileNo int
 }
 
 func (t *Tile) Neighbors() []*Tile {
 	var neighbors []*Tile
 	for _, next := range NewMoves() {
-		neighborTile, present := t.board.GetTile(t.X+next.X, t.Y+next.Y)
-		if !present {
+		if t.X == 1 && t.Y == 2 {
+			fmt.Println()
+		}
+		neighborTile := t.board.Tile(t.X+next.X, t.Y+next.Y)
+		if neighborTile.snakeTileNo == 1 {
 			continue
 		}
-		if tileKindCost[neighborTile.costIndex] < NoPassCost {
-			neighbors = append(neighbors, neighborTile)
-		}
+		neighbors = append(neighbors, neighborTile)
 	}
 	return neighbors
 }
@@ -44,8 +48,11 @@ func (t *Tile) Neighbors() []*Tile {
 // PathNeighbors repack into Pather interface
 func (t *Tile) PathNeighbors() []astar.Pather {
 	var neighbors []astar.Pather
-	for _, n := range t.Neighbors() {
-		neighbors = append(neighbors, n)
+	ns := t.Neighbors()
+	for _, n := range ns {
+		if tileKindCost[n.costIndex] < NoPassCost {
+			neighbors = append(neighbors, n)
+		}
 	}
 	return neighbors
 }
