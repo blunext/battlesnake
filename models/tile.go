@@ -1,7 +1,6 @@
 package models
 
 import (
-	"fmt"
 	"github.com/beefsack/go-astar"
 )
 
@@ -33,9 +32,6 @@ type Tile struct {
 func (t *Tile) Neighbors() []*Tile {
 	var neighbors []*Tile
 	for _, next := range NewMoves() {
-		if t.X == 1 && t.Y == 2 {
-			fmt.Println()
-		}
 		neighborTile := t.board.Tile(t.X+next.X, t.Y+next.Y)
 		if neighborTile.snakeTileNo == 1 {
 			continue

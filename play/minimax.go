@@ -6,7 +6,7 @@ import (
 	"sync"
 )
 
-const MMdepth = 5
+const MMdepth = 4
 
 var Counter int
 
@@ -14,7 +14,7 @@ func Minimax(board models.MyBoard, depth int, heroId string) models.SnakeMoves {
 
 	depth--
 	combinations := board.AllCombinations()
-	if depth == MMdepth-3 {
+	if depth == MMdepth-33 {
 		movesCh := make(chan models.SnakeMoves)
 		wg := sync.WaitGroup{}
 		for _, round := range combinations {
@@ -22,14 +22,15 @@ func Minimax(board models.MyBoard, depth int, heroId string) models.SnakeMoves {
 			wg.Add(1)
 			go func(r models.SnakeMoves, moves chan models.SnakeMoves) {
 				newBoard := board.CopyBoard() // todo: for next newboard we could revert prev changes
-				newBoard.ApplyMoves(round)
-				evaluateRound(newBoard, round, heroId) // changes payoff in combination round
-				newBoard.Clean()
+				newBoard.ApplyMoves(r)
+				evaluateRound(newBoard, r, heroId) // changes payoff in combination round
+				newBoard.Clean(r)                  // removes dead snakes
+				//jeśeli jakiś snake pozostał chyba że jesteśmy sami?
 				if depth > 0 {
 					nextLevel := Minimax(newBoard, depth, heroId)
-					mergeLevels(round, nextLevel, heroId)
+					mergeLevels(r, nextLevel, heroId)
 				}
-				moves <- round
+				moves <- r
 			}(round, movesCh)
 		}
 		rounds := []models.SnakeMoves{}
@@ -46,10 +47,11 @@ func Minimax(board models.MyBoard, depth int, heroId string) models.SnakeMoves {
 			newBoard := board.CopyBoard() // todo: for next newboard we could revert prev changes
 			newBoard.ApplyMoves(round)
 			evaluateRound(newBoard, round, heroId) // changes payoff in combination round
-			newBoard.Clean()
+			newBoard.Clean(round)
 			if depth == 0 {
 				return round
 			}
+
 			nextLevel := Minimax(newBoard, depth, heroId)
 			mergeLevels(round, nextLevel, heroId)
 		}

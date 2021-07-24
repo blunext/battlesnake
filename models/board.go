@@ -1,6 +1,7 @@
 package models
 
 import (
+	"fmt"
 	"github.com/jinzhu/copier"
 	"log"
 )
@@ -86,9 +87,8 @@ func (b *MyBoard) SetTile(x, y int, t *Tile) {
 func (b *MyBoard) Tile(x, y int) *Tile {
 	x++
 	y++
-	if x < 0 || x > b.GameData.Board.Width || y < 0 || y > b.GameData.Board.Height {
+	if x < 0 || x > b.GameData.Board.Width+1 || y < 0 || y > b.GameData.Board.Height+1 {
 		log.Panicf("##############: tile out of range: %d-1, %d-1\n", x, y)
-
 	}
 	return b.tiles[x][y]
 }
@@ -103,14 +103,18 @@ func (b *MyBoard) GetBattlesnake(id string) *Battlesnake {
 }
 
 func (b *MyBoard) CopyBoard() MyBoard {
-	tiles := make([][]*Tile, b.GameData.Board.Height)
+	tiles := make([][]*Tile, b.GameData.Board.Height+2)
 	for i := range tiles {
-		tiles[i] = make([]*Tile, b.GameData.Board.Width)
+		tiles[i] = make([]*Tile, b.GameData.Board.Width+2)
 	}
+
+	board := MyBoard{tiles: tiles}
 
 	for y, yTiles := range b.tiles {
 		for x, t := range yTiles {
-			tiles[x][y] = &Tile{X: t.X, Y: t.Y, board: t.board, costIndex: t.costIndex} // todo: snakeTileVanish
+			t := Tile{X: t.X, Y: t.Y, board: t.board, costIndex: t.costIndex, snakeTileNo: t.snakeTileNo}
+			//board.SetTile(x, y, &t)
+			board.tiles[x][y] = &t
 		}
 	}
 	gameRequest := GameRequest{}
@@ -118,61 +122,108 @@ func (b *MyBoard) CopyBoard() MyBoard {
 	if err != nil {
 		panic("cannot copy request")
 	}
-	return MyBoard{tiles: tiles, GameData: &gameRequest}
+	board.GameData = &gameRequest
+	return board
 }
 
 func (b *MyBoard) ApplyMoves(round SnakeMoves) {
 	for _, oneMove := range round {
-		foundFood := b.tiles[oneMove.Move.X][oneMove.Move.Y].costIndex == food
-
-		newHeadTile := Tile{X: oneMove.Move.X, Y: oneMove.Move.Y, board: b}
-		//destiny, ok := b.getTile(newHeadTile.X, newHeadTile.Y)
-		//if ok {
-		//	if destiny.costIndex
-		//} else {
-		//
-		//}
-		b.tiles[oneMove.Move.X][oneMove.Move.Y] = &newHeadTile
-
+	loop:
 		for i := range b.GameData.Board.Snakes {
-			snake := &b.GameData.Board.Snakes[i]
-			if snake.ID == oneMove.SnakeId {
+			s := &b.GameData.Board.Snakes[i]
+			if s.ID == oneMove.SnakeId {
+				if oneMove.Move.Y == 12 {
+					fmt.Println()
+				}
+				switch b.Tile(oneMove.Move.X, oneMove.Move.Y).costIndex {
+				case snake:
+					if cId, ok := b.checkH2HCollision(oneMove, s); ok {
+						if s.Length <= b.GameData.Board.Snakes[cId].Length {
+							s.Health = 0
+							if oneMove.SnakeId == b.GameData.You.ID {
+								b.GameData.You.Health = 0
+							}
+							break loop
+						}
+					}
+					b.decriseTileAndHealth(s)
+				case wall:
+					s.Health = 0
+					if oneMove.SnakeId == b.GameData.You.ID {
+						b.GameData.You.Health = 0
+					}
+					break loop
+				case food:
+					s.Length++
+					s.Health = 100
+				default:
+					b.decriseTileAndHealth(s)
+				}
+
 				head := Coord{X: oneMove.Move.X, Y: oneMove.Move.Y}
 				body := append([]Coord{}, head)
-				body = append(body, snake.Body...) //todo: make a copy first?
-				snake.Body = body
-				snake.Head = head
-				if foundFood {
-					snake.Length++
-					snake.Health = 100
-				} else {
-					snake.Health--
-					lastBodyPart := snake.Body[len(snake.Body)-1]
-					emptyTile := Tile{X: lastBodyPart.X, Y: lastBodyPart.Y, board: b, costIndex: empty}
-					b.tiles[lastBodyPart.X][lastBodyPart.Y] = &emptyTile
-				}
+				body = append(body, s.Body...) //todo: make a copy first?
+				s.Body = body
+				s.Head = head
+
 				if b.GameData.You.ID == oneMove.SnakeId {
-					b.GameData.You = *snake
+					b.GameData.You = *s
 				}
+
+				newHeadTile := Tile{X: oneMove.Move.X, Y: oneMove.Move.Y, board: b}
+				b.SetTile(newHeadTile.X, newHeadTile.Y, &newHeadTile)
 				break
 			}
 		}
 	}
-	//// check head2head collision
-	//for _, snake1 := range round {
-	//	for _, snake2 := range round {
-	//		if snake1.SnakeId == snake2.SnakeId {
-	//			continue
-	//		}
-	//		if snake1.Move.X == snake2.Move.X && snake1.Move.Y == snake2.Move.Y {
-	//
-	//		}
-	//	}
-	//}
 }
 
-func (b *MyBoard) Clean() {
+func (b *MyBoard) Clean(round SnakeMoves) {
+	for _, oneMove := range round {
+		for i := range b.GameData.Board.Snakes {
+			if b.GameData.Board.Snakes[i].ID == oneMove.SnakeId {
+				if b.GameData.Board.Snakes[i].Health == 0 {
+					s := b.GameData.Board.Snakes
+					//remove snake
+					s[len(s)-1], s[i] = s[i], s[len(s)-1] // swap with last
+					b.GameData.Board.Snakes = s[:len(s)-1]
+					break
+					//if b.GameData.You.ID == oneMove.SnakeId {
+					//	b.GameData.You = *s
+					//}
+				}
+			}
+		}
 
+	}
+}
+
+func (b *MyBoard) decriseTileAndHealth(s *Battlesnake) {
+	s.Health--
+	lastBodyPart := s.Body[len(s.Body)-1]
+	emptyTile := Tile{X: lastBodyPart.X, Y: lastBodyPart.Y, board: b, costIndex: empty}
+	b.SetTile(emptyTile.X, emptyTile.Y, &emptyTile)
+}
+
+func (b *MyBoard) h2h(oneMove SnakeMove, snake *Battlesnake) bool {
+	for i := range b.GameData.Board.Snakes {
+		if b.GameData.Board.Snakes[i].Head.X == oneMove.Move.X && b.GameData.Board.Snakes[i].Head.Y == oneMove.Move.Y {
+			return snake.Length <= b.GameData.Board.Snakes[i].Length // death
+		}
+	}
+	return true // no H2H
+}
+
+func (b *MyBoard) checkH2HCollision(oneMove SnakeMove, snake *Battlesnake) (int, bool) {
+	for i := range b.GameData.Board.Snakes {
+		if b.GameData.Board.Snakes[i].ID == oneMove.SnakeId {
+			continue
+		}
+		if b.GameData.Board.Snakes[i].Head.X == oneMove.Move.X && b.GameData.Board.Snakes[i].Head.Y == oneMove.Move.Y {
+			return i, true
+		}
+	}
+	return 0, false
 }
 
 func (b *MyBoard) AllCombinations() []SnakeMoves {
@@ -221,4 +272,14 @@ func (b *MyBoard) makeListOfNeighbourTilesForAllSnakes() NeighbourTilesForAllSna
 		listOfListsOfNeighbours = append(listOfListsOfNeighbours, listOfNeighbours)
 	}
 	return listOfListsOfNeighbours
+}
+
+func removeMove(moves []Direction, toRemove Direction) []Direction {
+	for i, m := range moves {
+		if m.Heading == toRemove.Heading {
+			moves[len(moves)-1], moves[i] = moves[i], moves[len(moves)-1] // swap with last
+			return moves[:len(moves)-1]                                   // truncate last
+		}
+	}
+	return moves
 }
