@@ -1,4 +1,4 @@
-package game
+package models
 
 import (
 	"github.com/beefsack/go-astar"
@@ -22,7 +22,7 @@ var tileKindCost = map[int]float64{
 
 type Tile struct {
 	X, Y            int
-	board           *board
+	board           *MyBoard
 	costIndex       int
 	snakeTileVanish int
 }
@@ -30,7 +30,7 @@ type Tile struct {
 func (t *Tile) Neighbors() []*Tile {
 	var neighbors []*Tile
 	for _, next := range NewMoves() {
-		neighborTile, present := t.board.getTile(t.X+next.X, t.Y+next.Y)
+		neighborTile, present := t.board.GetTile(t.X+next.X, t.Y+next.Y)
 		if !present {
 			continue
 		}
@@ -69,4 +69,13 @@ func (t *Tile) PathEstimatedCost(to astar.Pather) float64 {
 
 func (t *Tile) Cost() float64 {
 	return tileKindCost[t.costIndex]
+}
+
+func NewMoves() []Direction {
+	return []Direction{
+		{0, 1, "up", 0},
+		{0, -1, "down", 0},
+		{-1, 0, "left", 0},
+		{1, 0, "right", 0},
+	}
 }

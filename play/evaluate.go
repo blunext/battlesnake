@@ -1,4 +1,6 @@
-package game
+package play
+
+import "snakehero/models"
 
 //type payoff struct {
 //	snakeId string
@@ -6,7 +8,7 @@ package game
 //}
 
 // changes payoff in combination round
-func evaluateRound(board board, moves []snakeMove, heroId string) {
+func evaluateRound(board models.MyBoard, moves []models.SnakeMove, heroId string) {
 	//type x struct {
 	//	snakeId string
 	//	lenght  int
@@ -24,7 +26,7 @@ func evaluateRound(board board, moves []snakeMove, heroId string) {
 	//}
 
 	for i := range moves {
-		p := float64(board.getBattlesnake(moves[i].SnakeId).Length)
-		moves[i].payoff = p
+		p := float64(board.GetBattlesnake(moves[i].SnakeId).Length)
+		moves[i].Payoff = p
 	}
 }

@@ -1,4 +1,4 @@
-package game
+package models
 
 type Game struct {
 	ID      string `json:"id"`
@@ -37,9 +37,9 @@ type BattlesnakeInfoResponse struct {
 }
 
 type GameRequest struct {
-	Game  Game        `json:"game"`
+	Game  Game        `json:"play"`
 	Turn  int         `json:"turn"`
-	Board Board       `json:"board"`
+	Board Board       `json:"MyBoard"`
 	You   Battlesnake `json:"you"`
 }
 

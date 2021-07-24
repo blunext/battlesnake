@@ -1,45 +1,30 @@
-package game
+package play
 
 import (
 	"math/rand"
+	"snakehero/models"
 	"sync"
 )
 
 const MMdepth = 5
 
-type snakeMove struct {
-	SnakeId string
-	Move    Tile
-	payoff  float64
-}
-
-type snakeMoves []snakeMove
-
-type neighbourListWithIterator struct {
-	snakeMoves
-	iterator int
-}
-
-type neighbourTilesForAllSnakes []neighbourListWithIterator
-
-const dead = -9999999999999999.0
-
 var Counter int
 
-func Minimax(board board, depth int, heroId string) snakeMoves {
+func Minimax(board models.MyBoard, depth int, heroId string) models.SnakeMoves {
 
 	depth--
-	combinations := board.allCombinations()
+	combinations := board.AllCombinations()
 	if depth == MMdepth-3 {
-		movesCh := make(chan snakeMoves)
+		movesCh := make(chan models.SnakeMoves)
 		wg := sync.WaitGroup{}
 		for _, round := range combinations {
 			Counter++
 			wg.Add(1)
-			go func(r snakeMoves, moves chan snakeMoves) {
-				newBoard := board.copyBoard() // todo: for next newboard we could revert prev changes
-				newBoard.applyMoves(round)
+			go func(r models.SnakeMoves, moves chan models.SnakeMoves) {
+				newBoard := board.CopyBoard() // todo: for next newboard we could revert prev changes
+				newBoard.ApplyMoves(round)
 				evaluateRound(newBoard, round, heroId) // changes payoff in combination round
+				newBoard.Clean()
 				if depth > 0 {
 					nextLevel := Minimax(newBoard, depth, heroId)
 					mergeLevels(round, nextLevel, heroId)
@@ -47,7 +32,7 @@ func Minimax(board board, depth int, heroId string) snakeMoves {
 				moves <- round
 			}(round, movesCh)
 		}
-		rounds := []snakeMoves{}
+		rounds := []models.SnakeMoves{}
 		go func() {
 			for r := range movesCh {
 				rounds = append(rounds, r)
@@ -58,9 +43,10 @@ func Minimax(board board, depth int, heroId string) snakeMoves {
 		return bestMove(rounds, heroId)
 	} else {
 		for _, round := range combinations {
-			newBoard := board.copyBoard() // todo: for next newboard we could revert prev changes
-			newBoard.applyMoves(round)
+			newBoard := board.CopyBoard() // todo: for next newboard we could revert prev changes
+			newBoard.ApplyMoves(round)
 			evaluateRound(newBoard, round, heroId) // changes payoff in combination round
+			newBoard.Clean()
 			if depth == 0 {
 				return round
 			}
@@ -71,25 +57,25 @@ func Minimax(board board, depth int, heroId string) snakeMoves {
 	}
 }
 
-func bestMove(combinations []snakeMoves, heroId string) snakeMoves {
+func bestMove(combinations []models.SnakeMoves, heroId string) models.SnakeMoves {
 	avarage, count := 0.0, 0.0
 	for _, round := range combinations {
 		for _, r := range round {
 			//if r.SnakeId == heroId {
 			//	continue
 			//}
-			avarage += r.payoff
+			avarage += r.Payoff
 			count++
 		}
 	}
 	avarage = avarage / count
-	best := snakeMoves{}
+	best := models.SnakeMoves{}
 	for _, round := range combinations {
 		distance := 0.0
 		for _, r := range round {
 			if r.SnakeId != heroId {
-				if r.payoff-avarage >= distance {
-					distance = r.payoff - avarage
+				if r.Payoff-avarage >= distance {
+					distance = r.Payoff - avarage
 					best = round
 				}
 			}
@@ -97,22 +83,22 @@ func bestMove(combinations []snakeMoves, heroId string) snakeMoves {
 	}
 	if len(best) == 0 {
 		if len(combinations) == 0 {
-			return snakeMoves{}
+			return models.SnakeMoves{}
 		}
 		return combinations[rand.Intn(len(combinations))]
 	}
 	return best
 }
 
-func mergeLevels(round snakeMoves, nextLevel snakeMoves, heroId string) {
+func mergeLevels(round models.SnakeMoves, nextLevel models.SnakeMoves, heroId string) {
 	for _, r := range round {
 		for _, x := range nextLevel {
-			if r.SnakeId == heroId && x.SnakeId == heroId && r.payoff < x.payoff {
-				r.payoff = x.payoff
+			if r.SnakeId == heroId && x.SnakeId == heroId && r.Payoff < x.Payoff {
+				r.Payoff = x.Payoff
 				break
 			}
-			if r.SnakeId == x.SnakeId && r.payoff > x.payoff {
-				r.payoff = x.payoff
+			if r.SnakeId == x.SnakeId && r.Payoff > x.Payoff {
+				r.Payoff = x.Payoff
 			}
 		}
 	}
